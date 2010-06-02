@@ -1,0 +1,4 @@
+glob:*ReSharper*
+glob:*/bin/*
+glob:*/obj/*
+glob:*.suo

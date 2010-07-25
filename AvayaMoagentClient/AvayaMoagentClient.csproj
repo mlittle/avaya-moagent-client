@@ -2,21 +2,19 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3BB65348-8605-42BC-B4E0-A90A95B7D6F8}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{DF260CC5-B94D-4D89-8430-C865E4AD47E9}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AvayaPDSEmulator</RootNamespace>
-    <AssemblyName>AvayaPDSEmulator</AssemblyName>
+    <RootNamespace>AvayaMoagentClient</RootNamespace>
+    <AssemblyName>AvayaMoagentClient</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,14 +23,17 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,15 +44,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Startup.cs" />
+    <Compile Include="AvayaDialer.cs" />
+    <Compile Include="Commands\CommandCache.cs" />
+    <Compile Include="Commands\ConnectHeadset.cs" />
+    <Compile Include="Commands\DisconnectHeadset.cs" />
+    <Compile Include="Commands\ListJobs.cs" />
+    <Compile Include="Commands\ListState.cs" />
+    <Compile Include="Commands\Logoff.cs" />
+    <Compile Include="Commands\Logon.cs" />
+    <Compile Include="Commands\ReserveHeadset.cs" />
+    <Compile Include="Message.cs" />
+    <Compile Include="MessageReceivedEventArgs.cs" />
+    <Compile Include="MoagentClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AvayaPdsServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AvayaMoagentClient\AvayaMoagentClient.csproj">
-      <Project>{DF260CC5-B94D-4D89-8430-C865E4AD47E9}</Project>
-      <Name>AvayaMoagentClient</Name>
-    </ProjectReference>
+    <Folder Include="Messages\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

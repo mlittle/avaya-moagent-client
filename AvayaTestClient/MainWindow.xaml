@@ -1,0 +1,29 @@
+﻿<Window x:Class="AvayaTestClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dc="clr-namespace:AvayaTestClient.ViewModels"
+        d:DataContext="{d:DesignInstance dc:MainViewModel}"
+        Title="MainWindow" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" Height="350" Width="525">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="138*" />
+            <RowDefinition Height="173*" />
+        </Grid.RowDefinitions>
+        <ListView Grid.Row="1" ItemsSource="{Binding Path=Messages}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=RawMessage}" Header="Messages" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Content="Connect" Height="23" HorizontalAlignment="Left" Margin="12,12,0,0" Name="button1" VerticalAlignment="Top" Width="75" Click="button1_Click" />
+        <Button Content="Login" Height="23" HorizontalAlignment="Left" Margin="93,12,0,0" Name="button2" VerticalAlignment="Top" Width="75" Click="button2_Click" />
+        <Button Content="Reserve Headset" Height="23" HorizontalAlignment="Left" Margin="174,12,0,0" Name="ReserveHeadset" VerticalAlignment="Top" Width="102" Click="ReserveHeadset_Click" />
+        <Button Content="Conn Headset" Height="23" HorizontalAlignment="Left" Margin="282,12,0,0" Name="ConnHeadset" VerticalAlignment="Top" Width="86" Click="ConnHeadset_Click" />
+        <Button Content="List State" Height="23" HorizontalAlignment="Left" Margin="374,12,0,0" Name="ListState" VerticalAlignment="Top" Width="75" Click="ListState_Click" />
+        <Button Content="List Jobs" Height="23" HorizontalAlignment="Left" Margin="12,41,0,0" Name="ListJobs" VerticalAlignment="Top" Width="75" Click="ListJobs_Click" />
+        <Button Content="Disconnect Headset" Height="23" HorizontalAlignment="Left" Margin="93,41,0,0" Name="DisconnectHeadset" VerticalAlignment="Top" Width="117" Click="DisconnectHeadset_Click" />
+        <Button Content="Logoff" Height="23" HorizontalAlignment="Left" Margin="216,41,0,0" Name="Logoff" VerticalAlignment="Top" Width="75" Click="Logoff_Click" />
+        <Button Content="Disconnect" Height="23" HorizontalAlignment="Left" Margin="297,41,0,0" Name="Disconnect" VerticalAlignment="Top" Width="75" Click="Disconnect_Click" />
+    </Grid>
+</Window>

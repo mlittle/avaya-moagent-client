@@ -251,7 +251,7 @@ namespace AvayaPDSEmulator
                             ProcessId = "26621",
                             InvokeId = "0",
                             Contents =
-  new List<string>() { "M00001", "Home Phone - 479-273-7762", "OUTBOUND", "ACTID,170" }
+  new List<string>() { "M00001", "Home Phone - 479-273-7762", "OUTBOUND", "ACTID,100" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -265,7 +265,7 @@ namespace AvayaPDSEmulator
   new List<string>()
                                 {
                                   "M00001",
-                                  "ACTID,170",
+                                  "ACTID,100",
                                   "VKEY,4792737762533",
                                   "LOC,173",
                                   "BNAMEF,",

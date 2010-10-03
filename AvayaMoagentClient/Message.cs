@@ -77,14 +77,15 @@ namespace AvayaMoagentClient
     {
       get
       {
-        string ret;
+        //string ret;
 
-        if (_rawMessage == null)
-          ret = this.BuildMessage();
-        else
-          ret = _rawMessage;
+        //if (_rawMessage == null)
+        //  ret = this.BuildMessage();
+        //else
+        //  ret = _rawMessage;
 
-        return ret;
+        //return ret;
+        return this.BuildMessage();
       }
       set
       {

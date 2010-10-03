@@ -15,6 +15,7 @@ namespace AvayaTestClient.ViewModels
     public MainViewModel()
     {
       Avaya = new AvayaDialer("192.168.8.12", 22700);
+      //Avaya = new AvayaDialer("127.0.0.1", 22700);
       Avaya.MessageReceived += _avaya_MessageReceived;
       Messages = new ObservableCollection<Message>();
 

@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using AvayaMoagentClient;
 using AvayaTestClient.ViewModels;
 
 namespace AvayaTestClient
@@ -46,6 +47,7 @@ namespace AvayaTestClient
     private void ListJobs_Click(object sender, RoutedEventArgs e)
     {
       Vm.Avaya.ListJobs();
+      //Vm.Avaya.ListActiveJobs();
     }
 
     private void DisconnectHeadset_Click(object sender, RoutedEventArgs e)
@@ -61,6 +63,11 @@ namespace AvayaTestClient
     private void Disconnect_Click(object sender, RoutedEventArgs e)
     {
       Vm.Avaya.Disconnect();
+    }
+
+    private void btnFreeHeadset_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.SendCommand(new Message("AGTFreeHeadset", Message.MessageType.Command));
     }
   }
 }

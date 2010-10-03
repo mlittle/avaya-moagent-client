@@ -56,6 +56,11 @@ namespace AvayaMoagentClient
       _client.Send(CommandCache.ListAllJobs);
     }
 
+    public void ListActiveJobs()
+    {
+      _client.Send(new ListJobs(Commands.ListJobs.JobListingType.All, Commands.ListJobs.JobStatus.Active));
+    }
+
     public void DisconnectHeadset()
     {
       _client.Send(CommandCache.DisconnectHeadset);
@@ -69,6 +74,11 @@ namespace AvayaMoagentClient
     public void Disconnect()
     {
       _client.Disconnect();
+    }
+
+    public void SendCommand(Message command)
+    {
+      _client.Send(command);
     }
   }
 }

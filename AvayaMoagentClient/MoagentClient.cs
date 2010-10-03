@@ -20,10 +20,8 @@ namespace AvayaMoagentClient
 
   public class MoagentClient
   {
-    // ManualResetEvent instances signal completion.
-    private static ManualResetEvent sendDone = new ManualResetEvent(false);
-    private static ManualResetEvent receiveDone = new ManualResetEvent(false);
 
+    private int _invokeIdSequence = 1;
     private static Message lastMsg;
     private Socket _client;
     private string _server;
@@ -102,11 +100,10 @@ namespace AvayaMoagentClient
 
     public void StartConnectAsync()
     {
-      //var ipHostInfo = Dns.GetHostEntry(_server);
-      //var ipAddress = ipHostInfo.AddressList[2];
       var ip = IPAddress.Parse(_server);
       var remoteEp = new IPEndPoint(ip, _port);
       _client.BeginConnect(remoteEp, ConnectCallback, _client);
+      //_client.BeginConnect("mlittle.acttoday.com", 22700, ConnectCallback, _client);
     }
 
     private void ConnectCallback(IAsyncResult ar)
@@ -127,51 +124,36 @@ namespace AvayaMoagentClient
       _client.Close();
     }
 
-    private void GetResponse(Socket client)
-    {
-      var done = false;
+    //private void GetResponse(Socket client)
+    //{
+    //  var done = false;
 
-      while (!done)
-      {
-        receiveDone.Reset();
-        Receive(client);
-        receiveDone.WaitOne();
+    //  while (!done)
+    //  {
+    //    receiveDone.Reset();
+    //    Receive(client);
+    //    receiveDone.WaitOne();
 
-        if (lastMsg != null
-            && lastMsg.Contents.Count >= 1
-            && (lastMsg.Contents[0] == "M00000" ||
-                lastMsg.Contents[0] == "AGENT_STARTUP"
-                ))
-          done = true;
-        if (lastMsg != null
-            && lastMsg.Contents.Count == 2
-            && lastMsg.Contents[1].StartsWith("E"))
-          done = true;
-      }
-    }
-
-    private static Message CreateMessage(string command, List<string> contents)
-    {
-      return new Message
-               {
-                 Command = command,
-                 Type = Message.MessageType.Command,
-                 OrigId = command == "AGTListJobs" ? "404" : "OrigID",
-                 ProcessId = command == "AGTListJobs" ? "607" : "PrID",
-                 InvokeId = command == "AGTListJobs" ? "L27" : "InID",
-                 Contents = contents
-               };
-    }
+    //    if (lastMsg != null
+    //        && lastMsg.Contents.Count >= 1
+    //        && (lastMsg.Contents[0] == "M00000" ||
+    //            lastMsg.Contents[0] == "AGENT_STARTUP"
+    //            ))
+    //      done = true;
+    //    if (lastMsg != null
+    //        && lastMsg.Contents.Count == 2
+    //        && lastMsg.Contents[1].StartsWith("E"))
+    //      done = true;
+    //  }
+    //}
 
     private void Receive(Socket client)
     {
       try
       {
-        // Create the state object.
         var state = new StateObject();
         state.WorkSocket = client;
 
-        // Begin receiving the data from the remote device.
         client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
       }
       catch (Exception e)
@@ -201,8 +183,7 @@ namespace AvayaMoagentClient
             // There  might be more data, so store the data received so far.
             state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
 
-            // Check for end-of-file tag. If it is not there, read 
-            // more data.
+            // Check for end-of-file tag. If it is not there, read more data.
             content = state.sb.ToString();
             if (content.IndexOf((char)3) > -1)
             {
@@ -253,6 +234,7 @@ namespace AvayaMoagentClient
 
     public void Send(Message data)
     {
+      data.InvokeId = (_invokeIdSequence++).ToString();
       Send(data.RawMessage);
     }
 
@@ -274,11 +256,7 @@ namespace AvayaMoagentClient
         // Retrieve the socket from the state object.
         var client = (Socket)ar.AsyncState;
 
-        // Complete sending the data to the remote device.
-        var bytesSent = client.EndSend(ar);
-
-        // Signal that all bytes have been sent.
-        sendDone.Set();
+        //TODO: Tell somebody?
       }
       catch (Exception e)
       {

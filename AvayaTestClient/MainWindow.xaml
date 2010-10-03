@@ -23,7 +23,8 @@
         <Button Content="List State" Height="23" HorizontalAlignment="Left" Margin="374,12,0,0" Name="ListState" VerticalAlignment="Top" Width="75" Click="ListState_Click" />
         <Button Content="List Jobs" Height="23" HorizontalAlignment="Left" Margin="12,41,0,0" Name="ListJobs" VerticalAlignment="Top" Width="75" Click="ListJobs_Click" />
         <Button Content="Disconnect Headset" Height="23" HorizontalAlignment="Left" Margin="93,41,0,0" Name="DisconnectHeadset" VerticalAlignment="Top" Width="117" Click="DisconnectHeadset_Click" />
-        <Button Content="Logoff" Height="23" HorizontalAlignment="Left" Margin="216,41,0,0" Name="Logoff" VerticalAlignment="Top" Width="75" Click="Logoff_Click" />
-        <Button Content="Disconnect" Height="23" HorizontalAlignment="Left" Margin="297,41,0,0" Name="Disconnect" VerticalAlignment="Top" Width="75" Click="Disconnect_Click" />
+        <Button Content="Logoff" Height="23" HorizontalAlignment="Left" Margin="306,41,0,0" Name="Logoff" VerticalAlignment="Top" Width="75" Click="Logoff_Click" />
+        <Button Content="Disconnect" Height="23" HorizontalAlignment="Left" Margin="387,41,0,0" Name="Disconnect" VerticalAlignment="Top" Width="75" Click="Disconnect_Click" />
+        <Button Content="Free Headset" Height="23" HorizontalAlignment="Left" Margin="216,41,0,0" Name="btnFreeHeadset" VerticalAlignment="Top" Width="84" Click="btnFreeHeadset_Click" />
     </Grid>
 </Window>

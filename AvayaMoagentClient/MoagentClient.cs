@@ -46,9 +46,9 @@ namespace AvayaMoagentClient
       
       _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-      var certBio = BIO.File(@"C:\windows\MoagentCertificates\agentClientCert.p12", "r");
+      var certBio = BIO.File(@".\agentClientCert.p12", "r");
       X509Certificate clientCert = X509Certificate.FromPKCS12(certBio, string.Empty);
-      var serverBio = BIO.File(@"C:\windows\MoagentCertificates\ProactiveContactCA.cer", "r");
+      var serverBio = BIO.File(@".\ProactiveContactCA.cer", "r");
       X509Certificate serverCert = X509Certificate.FromDER(serverBio);
 
       _xList = new X509List();
@@ -214,6 +214,7 @@ namespace AvayaMoagentClient
         // from the asynchronous state object.
         var state = (StateObject)ar.AsyncState;
         var handler = state.SecureStream;
+        Message lastMsg = null;
 
         if (handler.CanRead)
         {
@@ -249,11 +250,14 @@ namespace AvayaMoagentClient
               if (msg.ToString().IndexOf((char)3) > -1)
                 state.sb.Append(msg.ToString());
 
-              _LogMessages(msgs);
+              lastMsg =  _LogMessages(msgs);
             }
           }
 
-          handler.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(ReceiveCallback), state);
+          if (!(lastMsg != null && 
+                lastMsg.Type == Message.MessageType.Response && 
+                lastMsg.Command.Trim() == "AGTLogoff"))
+            handler.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(ReceiveCallback), state);
         }
       }
       catch (Exception e)
@@ -262,17 +266,18 @@ namespace AvayaMoagentClient
       }
     }
 
-    private void _LogMessages(List<string> msgs)
+    private Message _LogMessages(List<string> msgs)
     {
+      Message lastMsg = null;
+
       foreach (var msg in msgs)
       {
         lastMsg = Message.ParseMessage(msg);
         if (MessageReceived != null)
           MessageReceived(this, new MessageReceivedEventArgs() { Message = lastMsg });
-        //Console.WriteLine("Client {0} {1} " + lastMsg.BuildMessage(),
-        //    lastMsg.Type == Message.MessageType.Command ? ">" : "<",
-        //    DateTime.Now.ToShortTimeString());
       }
+
+      return lastMsg;
     }
 
     public void Send(Message data)

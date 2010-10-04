@@ -5,14 +5,16 @@ namespace AvayaMoagentClient
   public class AvayaDialer
   {
     private MoagentClient _client;
+    private string _host;
+    private int _port;
 
     public event MoagentClient.MessageReceivedHandler MessageReceived;
 
     public AvayaDialer(string host, int port)
     {
-      _client = new MoagentClient(host, port);
-      _client.ConnectComplete += _client_ConnectComplete;
-      _client.MessageReceived += _client_MessageReceived;
+      _host = host;
+      _port = port;
+
     }
 
     void _client_MessageReceived(object sender, MessageReceivedEventArgs e)
@@ -28,6 +30,9 @@ namespace AvayaMoagentClient
 
     public void Connect()
     {
+      _client = new MoagentClient(_host, _port);
+      _client.ConnectComplete += _client_ConnectComplete;
+      _client.MessageReceived += _client_MessageReceived;
       _client.StartConnectAsync();
     }
 
@@ -74,6 +79,9 @@ namespace AvayaMoagentClient
     public void Disconnect()
     {
       _client.Disconnect();
+      _client.ConnectComplete -= _client_ConnectComplete;
+      _client.MessageReceived -= _client_MessageReceived;
+      _client = null;
     }
 
     public void SendCommand(Message command)

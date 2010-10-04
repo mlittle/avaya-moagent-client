@@ -26,12 +26,12 @@ namespace AvayaTestClient
 
     private void button2_Click(object sender, RoutedEventArgs e)
     {
-      Vm.Avaya.Login("m9057", "mlitt");
+      Vm.Avaya.Login("m9057", "9057tmp");
     }
 
     private void ReserveHeadset_Click(object sender, RoutedEventArgs e)
     {
-      Vm.Avaya.ReserveHeadset("1590");
+      Vm.Avaya.ReserveHeadset("1");
     }
 
     private void ConnHeadset_Click(object sender, RoutedEventArgs e)

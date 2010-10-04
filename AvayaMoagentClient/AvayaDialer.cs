@@ -14,7 +14,6 @@ namespace AvayaMoagentClient
     {
       _host = host;
       _port = port;
-
     }
 
     void _client_MessageReceived(object sender, MessageReceivedEventArgs e)

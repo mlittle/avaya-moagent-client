@@ -60,6 +60,56 @@ namespace AvayaMoagentClient
       _client.Send(CommandCache.ListAllJobs);
     }
 
+    public void AttachJob(string jobname)
+    {
+      _client.Send(new AttachJob(jobname));
+    }
+
+    public void SetWorkClass(SetWorkClass.WorkClass workClass)
+    {
+      _client.Send(new SetWorkClass(workClass));
+    }
+
+    public void SetNotifyKeyField(SetNotifyKeyField.ListType type, string fieldName)
+    {
+      _client.Send(new SetNotifyKeyField(type, fieldName)); 
+    }
+
+    public void SetDataField(SetDataField.ListType type, string fieldName)
+    {
+      _client.Send(new SetDataField(type, fieldName));
+    }
+
+    public void AvailableWork()
+    {
+      _client.Send(new AvailableWork());
+    }
+
+    public void ReadyNextItem()
+    {
+      _client.Send(new ReadyNextItem());
+    }
+
+    public void FinishedItem(string completionCode)
+    {
+      _client.Send(new FinishedItem(completionCode));
+    }
+
+    public void ReleaseLine()
+    {
+      _client.Send(new ReleaseLine());
+    }
+
+    public void NoFurtherWork()
+    {
+      _client.Send(new NoFurtherWork());
+    }
+
+    public void DetachJob()
+    {
+      _client.Send(new DetachJob());
+    }
+    
     public void ListActiveJobs()
     {
       _client.Send(new ListJobs(Commands.ListJobs.JobListingType.All, Commands.ListJobs.JobStatus.Active));

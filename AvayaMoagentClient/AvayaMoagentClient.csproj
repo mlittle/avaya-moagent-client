@@ -47,19 +47,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\AvailableWork.cs" />
+    <Compile Include="Commands\AttachJob.cs" />
     <Compile Include="AvayaDialer.cs" />
     <Compile Include="Commands\CommandCache.cs" />
     <Compile Include="Commands\ConnectHeadset.cs" />
+    <Compile Include="Commands\SetDataField.cs" />
     <Compile Include="Commands\DisconnectHeadset.cs" />
     <Compile Include="Commands\ListJobs.cs" />
     <Compile Include="Commands\ListState.cs" />
     <Compile Include="Commands\Logoff.cs" />
     <Compile Include="Commands\Logon.cs" />
     <Compile Include="Commands\ReserveHeadset.cs" />
+    <Compile Include="Commands\DetachJob.cs" />
+    <Compile Include="Commands\FinishedItem.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageReceivedEventArgs.cs" />
     <Compile Include="MoagentClient.cs" />
+    <Compile Include="Commands\NoFurtherWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Commands\ReadyNextItem.cs" />
+    <Compile Include="Commands\ReleaseLine.cs" />
+    <Compile Include="Commands\SetWorkClass.cs" />
+    <Compile Include="Commands\SetNotifyKeyField.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Messages\" />

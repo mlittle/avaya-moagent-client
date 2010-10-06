@@ -54,7 +54,6 @@ namespace AvayaMoagentClient
       _xList = new X509List();
       _xList.Add(clientCert);
       _xChain = new X509Chain();
-      _xChain.Add(clientCert);
       _xChain.Add(serverCert);
     }
 

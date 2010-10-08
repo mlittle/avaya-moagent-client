@@ -541,7 +541,7 @@ namespace AvayaPDSEmulator
                               OrigId = "Agent server",
                               ProcessId = "26621",
                               InvokeId = "0",
-                              IsError = true,
+                              //IsError = true,
                               Contents = new List<string>() { "E28885" }
                             });
           }

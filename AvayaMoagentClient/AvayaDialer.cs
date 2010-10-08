@@ -144,6 +144,42 @@ namespace AvayaMoagentClient
       _client = null;
     }
 
+    public void FreeHeadset()
+    {
+      _client.Send(new FreeHeadset());
+    }
+
+    public void TransferCall(string transferNumber)
+    {
+      throw new NotImplementedException();
+    }
+
+    public void ManagedCall()
+    {
+      throw new NotImplementedException();
+    }
+
+    public void ManualCall()
+    {
+      throw new NotImplementedException();
+    }
+
+    public void HangupCall()
+    {
+      throw new NotImplementedException();
+    }
+
+    public void DialDigit(string digit)
+    {
+      throw new NotImplementedException();
+    }
+
+    public void SetCallback(string callbackDate, string callbackTime, string phoneIndex, string recallName, 
+        string recallNumber)
+    {
+      throw new NotImplementedException();
+    }
+
     public void SendCommand(Message command)
     {
       _client.Send(command);

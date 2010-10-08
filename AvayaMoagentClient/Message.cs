@@ -85,6 +85,11 @@ namespace AvayaMoagentClient
     public List<string> Contents { get; set; }
     public bool CacheRawMessage { get; protected set; }
 
+    public string Code
+    {
+      get { return Contents[1]; }
+    }
+
     public enum MessageType
     {
       Command = 'C',

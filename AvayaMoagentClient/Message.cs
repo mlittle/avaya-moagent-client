@@ -164,11 +164,11 @@ namespace AvayaMoagentClient
       var ret = new Message();
       ret.RawMessage = raw;
 
-      ret.Command = raw.Substring(0, 20);
-      ret.Type = (MessageType)char.Parse(raw.Substring(20, 1));
-      ret.OrigId = raw.Substring(21, 20);
-      ret.ProcessId = raw.Substring(41, 6);
-      ret.InvokeId = raw.Substring(47, 4);
+      ret.Command = raw.Substring(0, 20).Trim();
+      ret.Type = (MessageType) char.Parse(raw.Substring(20, 1));
+      ret.OrigId = raw.Substring(21, 20).Trim();
+      ret.ProcessId = raw.Substring(41, 6).Trim();
+      ret.InvokeId = raw.Substring(47, 4).Trim();
       ret.Contents = new List<string>();
 
       foreach (var data in raw.Substring(55).Replace(_END_OF_LINE.ToString(), string.Empty).Split(_RECORD_SEPERATOR))

@@ -46,31 +46,9 @@ namespace AvayaMoagentClient
       set { _invokeId = value; }
     }
 
-    public string Segments
+    public int Segments
     {
-      get
-      {
-        var ret = string.Empty;
-        switch (Type)
-        {
-          case MessageType.Command:
-            ret = Contents.Count.ToString();
-            break;
-          case MessageType.Pending:
-          case MessageType.Data:
-          case MessageType.Response:
-          case MessageType.Busy:
-          case MessageType.Notification:
-            ret = (Contents.Count + 1).ToString();
-            break;
-          case MessageType.Undefined:
-          default:
-            throw new ArgumentOutOfRangeException();
-            break;
-        }
-
-        return ret;
-      }
+      get { return Contents.Count; }
     }
 
     public string RawMessage

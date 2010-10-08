@@ -46,18 +46,18 @@ namespace AvayaTestClient.ViewModels
             case "AGTConnHeadset":
               Avaya.ListState();
               break;
-            case "AGTListState":
-              Avaya.DisconnectHeadset();
-              break;
-            case "AGTDisconnHeadset":
-              Avaya.SendCommand(new Message("AGTFreeHeadset", Message.MessageType.Command));
-              break;
-            case "AGTFreeHeadset":
-              Avaya.Logoff();
-              break;
-            case "AGTLogoff":
-              Avaya.Disconnect();
-              break;
+            //case "AGTListState":
+            //  Avaya.DisconnectHeadset();
+            //  break;
+            //case "AGTDisconnHeadset":
+            //  Avaya.SendCommand(new Message("AGTFreeHeadset", Message.MessageType.Command));
+            //  break;
+            //case "AGTFreeHeadset":
+            //  Avaya.Logoff();
+            //  break;
+            //case "AGTLogoff":
+            //  Avaya.Disconnect();
+            //  break;
            }
 
           break;

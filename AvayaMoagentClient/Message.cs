@@ -171,7 +171,7 @@ namespace AvayaMoagentClient
 
       foreach (var data in raw.Substring(55).Replace(_END_OF_LINE.ToString(), string.Empty).Split(_RECORD_SEPERATOR))
       {
-        if (!string.IsNullOrEmpty(data) && data != "0")
+        if (!string.IsNullOrEmpty(data))
           ret.Contents.Add(data);
       }
 

@@ -1,4 +1,6 @@
-﻿using AvayaMoagentClient.Commands;
+﻿using System;
+using AvayaMoagentClient.Commands;
+using AvayaMoagentClient.Enums;
 
 namespace AvayaMoagentClient
 {

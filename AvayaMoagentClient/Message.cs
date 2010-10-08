@@ -125,27 +125,32 @@ namespace AvayaMoagentClient
     private string BuildMessage()
     {
       var msg = new StringBuilder();
+      var msgContents = new StringBuilder();
+      var msgContentsSize = 0;
+
+      //Server has an additional flag that indicates if the message is an Error
+      //Client does not add this flag
+      //if (Type != MessageType.Command)
+      //{
+      //  msgContents.Append(_RECORD_SEPERATOR);
+      //  msgContents.Append(IsError ? "1" : "0");
+      //  msgContentsSize++;
+      //}
+
+      foreach (var content in Contents)
+      {
+        msgContents.Append(_RECORD_SEPERATOR);
+        msgContents.Append(content);
+        msgContentsSize++;
+      }
 
       msg.Append(Command.PadRight(20, ' '));
       msg.Append(((char)Type).ToString().PadRight(1, ' '));
       msg.Append(OrigId.PadRight(20, ' '));
       msg.Append(ProcessId.PadRight(6, ' '));
       msg.Append(InvokeId.PadRight(4, ' '));
-      msg.Append(Segments.PadRight(4, ' '));
-
-      //Server has an additional flag that indicates if the message is an Error
-      //Client does not add this flag
-      if (Type != MessageType.Command)
-      {
-        msg.Append(_RECORD_SEPERATOR);
-        msg.Append(IsError ? "1" : "0");
-      }
-
-      foreach (var content in Contents)
-      {
-        msg.Append(_RECORD_SEPERATOR);
-        msg.Append(content);
-      }
+      msg.Append(msgContentsSize.ToString().PadRight(4, ' '));
+      msg.Append(msgContents);
 
       msg.Append(_END_OF_LINE);
 

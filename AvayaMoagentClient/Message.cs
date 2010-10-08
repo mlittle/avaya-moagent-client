@@ -71,7 +71,17 @@ namespace AvayaMoagentClient
       }
     }
 
-    public bool IsError { get; set; }
+    public bool IsError
+    {
+      get
+      {
+        if (Contents[0] == "1")
+          return true;
+
+        return false;
+      }
+
+    }
     public List<string> Contents { get; set; }
     public bool CacheRawMessage { get; protected set; }
 

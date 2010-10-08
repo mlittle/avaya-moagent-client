@@ -61,6 +61,10 @@
     <Compile Include="Commands\ReserveHeadset.cs" />
     <Compile Include="Commands\DetachJob.cs" />
     <Compile Include="Commands\FinishedItem.cs" />
+    <Compile Include="Commands\FreeHeadset.cs" />
+    <Compile Include="MessageSentEventArgs.cs" />
+    <Compile Include="Enums\FieldListType.cs" />
+    <Compile Include="Enums\WorkClass.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageReceivedEventArgs.cs" />
     <Compile Include="MoagentClient.cs" />

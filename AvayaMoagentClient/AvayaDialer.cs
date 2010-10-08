@@ -75,17 +75,17 @@ namespace AvayaMoagentClient
       _client.Send(new AttachJob(jobname));
     }
 
-    public void SetWorkClass(SetWorkClass.WorkClass workClass)
+    public void SetWorkClass(WorkClass workClass)
     {
       _client.Send(new SetWorkClass(workClass));
     }
 
-    public void SetNotifyKeyField(SetNotifyKeyField.ListType type, string fieldName)
+    public void SetNotifyKeyField(FieldListType type, string fieldName)
     {
       _client.Send(new SetNotifyKeyField(type, fieldName)); 
     }
 
-    public void SetDataField(SetDataField.ListType type, string fieldName)
+    public void SetDataField(FieldListType type, string fieldName)
     {
       _client.Send(new SetDataField(type, fieldName));
     }

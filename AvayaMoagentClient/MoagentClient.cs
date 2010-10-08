@@ -34,9 +34,11 @@ namespace AvayaMoagentClient
     private X509List _xList;
     private X509Chain _xChain;
 
+    public delegate void MessageSentHandler(object sender, MessageSentEventArgs e);
     public delegate void MessageReceivedHandler(object sender, MessageReceivedEventArgs e);
 
     public event EventHandler ConnectComplete;
+    public event MessageSentHandler MessageSent;
     public event MessageReceivedHandler MessageReceived;
 
     public MoagentClient(string host, int port)
@@ -249,7 +251,7 @@ namespace AvayaMoagentClient
               if (msg.ToString().IndexOf((char)3) > -1)
                 state.sb.Append(msg.ToString());
 
-              lastMsg =  _LogMessages(msgs);
+              lastMsg =  _LogMessagesReceived(msgs);
             }
           }
 
@@ -265,7 +267,7 @@ namespace AvayaMoagentClient
       }
     }
 
-    private Message _LogMessages(List<string> msgs)
+    private Message _LogMessagesReceived(List<string> msgs)
     {
       Message lastMsg = null;
 
@@ -282,13 +284,16 @@ namespace AvayaMoagentClient
     public void Send(Message data)
     {
       data.InvokeId = (_invokeIdSequence++).ToString();
+      if (MessageSent != null)
+        MessageSent(this, new MessageSentEventArgs() { Message = data });
+
       Send(data.RawMessage);
     }
 
     private void Send(string data)
     {
       // Convert the string data to byte data using ASCII encoding.
-      _LogMessages(new List<string>() { data });
+      //_LogMessages(new List<string>() { data });
 
       byte[] byteData = Encoding.ASCII.GetBytes(data);
 

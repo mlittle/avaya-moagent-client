@@ -12,7 +12,7 @@ namespace AvayaMoagentClient
 
     public event MoagentClient.MessageSentHandler MessageSent;
     public event MoagentClient.MessageReceivedHandler MessageReceived;
-    
+
     public AvayaDialer(string host, int port)
     {
       _host = host;
@@ -151,7 +151,7 @@ namespace AvayaMoagentClient
 
     public void TransferCall(string transferNumber)
     {
-      throw new NotImplementedException();
+      _client.Send(new TransferCall(transferNumber));
     }
 
     public void ManagedCall()

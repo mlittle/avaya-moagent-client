@@ -87,7 +87,12 @@ namespace AvayaMoagentClient
 
     public string Code
     {
-      get { return Contents[1]; }
+      get
+      {
+        //Codes should only be 6 chars; except in some odd cases where the dialer tacks a message to the end
+        //Ex: AGTSystemError      NAgent server        12708 0   2   1E70002,AGTConnHeadset_RESP(MAKECONN)
+        return Contents[1].Substring(0,6);  
+      }
     }
 
     public enum MessageType

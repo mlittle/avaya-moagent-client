@@ -73,8 +73,7 @@ namespace AvayaMoagentClient
       var stream = new NetworkStream(_client, FileAccess.ReadWrite, true);
       _sslWrapper = new SslStream(stream, false, ValidateRemoteCert, clientCertificateSelectionCallback);
 
-      _sslWrapper.AuthenticateAsClient("192.168.80.79", _xList, _xChain, SslProtocols.Default, SslStrength.All,
-                                       false);
+      _sslWrapper.AuthenticateAsClient(_server, _xList, _xChain, SslProtocols.Default, SslStrength.All, false);
 
       Receive(_sslWrapper);
 

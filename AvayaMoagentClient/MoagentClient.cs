@@ -151,10 +151,9 @@ namespace AvayaMoagentClient
               }
 
               state.sb.Length = 0;
-              if (msg.ToString().IndexOf((char)3) > -1)
-                state.sb.Append(msg.ToString());
+              state.sb.Append(msg.ToString());
 
-              lastMsg =  _LogMessagesReceived(msgs);
+              lastMsg = _LogMessagesReceived(msgs);
             }
           }
 

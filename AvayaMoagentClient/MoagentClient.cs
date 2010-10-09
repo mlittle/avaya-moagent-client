@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using OpenSSL;
 using OpenSSL.Core;
 using OpenSSL.X509;
@@ -59,71 +57,11 @@ namespace AvayaMoagentClient
       _xChain.Add(serverCert);
     }
 
-    public void StartClient(string host, string port)
-    {
-      // Connect to a remote device.
-      try
-      {
-        // Connect to the remote endpoint.
-        //client.BeginConnect(remoteEp, ConnectCallback, client);
-        //connectDone.WaitOne();
-        //GetResponse(client);
-        //Console.WriteLine("Connected!");
-        //Console.ReadKey(true);
-
-        //// Send test data to the remote device.
-        //Send(client, new Logon("m9057", "mlitt"));
-        //sendDone.WaitOne();
-        //GetResponse(client);
-        //Console.ReadKey(true);
-
-        //Send(client, new ReserveHeadset("1590"));
-        //sendDone.WaitOne();
-        //GetResponse(client);
-        //Console.ReadKey(true);
-
-        //Send(client, CommandCache.ConnectHeadset);
-        //sendDone.WaitOne();
-        //GetResponse(client);
-        //Console.ReadKey(true);
-
-        //Send(client, CommandCache.ListState);
-        //sendDone.WaitOne();
-        //GetResponse(client);
-        //Console.ReadKey(true);
-
-        //Send(client, CommandCache.ListAllJobs);
-        //sendDone.WaitOne();
-        //GetResponse(client);
-        //Console.ReadKey(true);
-
-        //Send(client, CommandCache.DisconnectHeadset);
-        //sendDone.WaitOne();
-        //GetResponse(client);
-        //Console.ReadKey(true);
-
-        //Send(client, CommandCache.LogOff);
-        //sendDone.WaitOne();
-        //GetResponse(client);
-
-        //// Release the socket.
-        //client.Shutdown(SocketShutdown.Both);
-        //client.Close();
-
-      }
-      catch (Exception e)
-      {
-        Console.WriteLine(e.ToString());
-      }
-    }
-
     public void StartConnectAsync()
     {
       var ip = IPAddress.Parse(_server);
       var remoteEp = new IPEndPoint(ip, _port);
       _client.BeginConnect(remoteEp, ConnectCallback, _client);
-
-      //_client.BeginConnect("mlittle.acttoday.com", 22700, ConnectCallback, _client);
     }
 
     private void ConnectCallback(IAsyncResult ar)
@@ -134,18 +72,6 @@ namespace AvayaMoagentClient
 
       var stream = new NetworkStream(_client, FileAccess.ReadWrite, true);
       _sslWrapper = new SslStream(stream, false, ValidateRemoteCert, clientCertificateSelectionCallback);
-
-      //var certBio = BIO.File(@"C:\windows\MoagentCertificates\agentClientCert.p12", "r");
-      //X509Certificate clientCert = X509Certificate.FromPKCS12(certBio, string.Empty);
-      //var serverBio = BIO.File(@"C:\windows\MoagentCertificates\ProactiveContactCA.cer", "r");
-      //X509Certificate serverCert = X509Certificate.FromDER(serverBio);
-
-      //var xList = new X509List();
-      //xList.Add(clientCert);
-      ////xList.Add(serverCert);
-      //var xChain = new X509Chain();
-      //xChain.Add(clientCert);
-      //xChain.Add(serverCert);
 
       _sslWrapper.AuthenticateAsClient("192.168.80.79", _xList, _xChain, SslProtocols.Default, SslStrength.All,
                                        false);
@@ -159,36 +85,13 @@ namespace AvayaMoagentClient
     public void Disconnect()
     {
       _sslWrapper.Close();
-      //_client.Shutdown(SocketShutdown.Both);
+
       if (_client.Connected)
         _client.Close();
       
       _sslWrapper.Dispose();
       _sslWrapper = null;
     }
-
-    //private void GetResponse(Socket client)
-    //{
-    //  var done = false;
-
-    //  while (!done)
-    //  {
-    //    receiveDone.Reset();
-    //    Receive(client);
-    //    receiveDone.WaitOne();
-
-    //    if (lastMsg != null
-    //        && lastMsg.Contents.Count >= 1
-    //        && (lastMsg.Contents[0] == "M00000" ||
-    //            lastMsg.Contents[0] == "AGENT_STARTUP"
-    //            ))
-    //      done = true;
-    //    if (lastMsg != null
-    //        && lastMsg.Contents.Count == 2
-    //        && lastMsg.Contents[1].StartsWith("E"))
-    //      done = true;
-    //  }
-    //}
 
     private void Receive(SslStream client)
     {
@@ -292,14 +195,10 @@ namespace AvayaMoagentClient
 
     private void Send(string data)
     {
-      // Convert the string data to byte data using ASCII encoding.
-      //_LogMessages(new List<string>() { data });
-
       byte[] byteData = Encoding.ASCII.GetBytes(data);
 
       // Begin sending the data to the remote device.
       _sslWrapper.BeginWrite(byteData, 0, byteData.Length, new AsyncCallback(SendCallback), _sslWrapper);
-      //_client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), _client);
     }
 
     private static void SendCallback(IAsyncResult ar)

@@ -59,6 +59,11 @@ namespace AvayaMoagentClient
       _xChain.Add(serverCert);
     }
 
+    public bool Connected
+    {
+      get { return (_sslWrapper != null && _client != null && _client.Connected); }
+    }
+
     public void StartConnectAsync()
     {
       var ip = IPAddress.Parse(_server);

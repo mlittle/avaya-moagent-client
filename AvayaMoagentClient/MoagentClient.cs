@@ -215,7 +215,7 @@ namespace AvayaMoagentClient
       _sslWrapper.BeginWrite(byteData, 0, byteData.Length, new AsyncCallback(SendCallback), _sslWrapper);
     }
 
-    private static void SendCallback(IAsyncResult ar)
+    private void SendCallback(IAsyncResult ar)
     {
       try
       {
@@ -223,6 +223,12 @@ namespace AvayaMoagentClient
         var client = (SslStream)ar.AsyncState;
         client.EndWrite(ar);
         //TODO: Tell somebody?
+      }
+      catch (IOException e)
+      {
+        //something in the transport leyer has failed, such as the network connection died
+        //TODO: log the exception details?
+        Disconnect();
       }
       catch (Exception e)
       {

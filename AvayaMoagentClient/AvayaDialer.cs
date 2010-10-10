@@ -92,12 +92,12 @@ namespace AvayaMoagentClient
 
     public void AvailableWork()
     {
-      _client.Send(new AvailableWork());
+      _client.Send(CommandCache.AvailableWork);
     }
 
     public void ReadyNextItem()
     {
-      _client.Send(new ReadyNextItem());
+      _client.Send(CommandCache.ReadyNextItem);
     }
 
     public void FinishedItem(string completionCode)
@@ -107,22 +107,22 @@ namespace AvayaMoagentClient
 
     public void HangupCall()
     {
-      _client.Send(new HangupCall());
+      _client.Send(CommandCache.HangupCall);
     }
 
     public void ReleaseLine()
     {
-      _client.Send(new ReleaseLine());
+      _client.Send(CommandCache.ReleaseLine);
     }
 
     public void NoFurtherWork()
     {
-      _client.Send(new NoFurtherWork());
+      _client.Send(CommandCache.NoFurtherWork);
     }
 
     public void DetachJob()
     {
-      _client.Send(new DetachJob());
+      _client.Send(CommandCache.DetachJob);
     }
     
     public void ListActiveJobs()
@@ -151,12 +151,12 @@ namespace AvayaMoagentClient
 
     public void FreeHeadset()
     {
-      _client.Send(new FreeHeadset());
+      _client.Send(CommandCache.FreeHeadset);
     }
 
     public void TransferCall()
     {
-      _client.Send(new TransferCall());
+      _client.Send(CommandCache.TransferCall);
     }
 
     public void TransferCall(string transferNumber)
@@ -166,7 +166,7 @@ namespace AvayaMoagentClient
 
     public void ManagedCall()
     {
-      _client.Send(new ManagedCall());
+      _client.Send(CommandCache.ManagedCall);
     }
 
     public void ManualCall()

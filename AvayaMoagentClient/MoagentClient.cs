@@ -34,10 +34,12 @@ namespace AvayaMoagentClient
 
     public delegate void MessageSentHandler(object sender, MessageSentEventArgs e);
     public delegate void MessageReceivedHandler(object sender, MessageReceivedEventArgs e);
+    public delegate void DisconnectedHandler(object sender, EventArgs e);
 
     public event EventHandler ConnectComplete;
     public event MessageSentHandler MessageSent;
     public event MessageReceivedHandler MessageReceived;
+    public event DisconnectedHandler Disconnected;
 
     public MoagentClient(string host, int port)
     {
@@ -90,6 +92,9 @@ namespace AvayaMoagentClient
       
       _sslWrapper.Dispose();
       _sslWrapper = null;
+
+      if (Disconnected != null)
+        Disconnected(this, EventArgs.Empty);
     }
 
     private void Receive(SslStream client)
@@ -161,6 +166,12 @@ namespace AvayaMoagentClient
                 lastMsg.Command.Trim() == "AGTLogoff"))
             handler.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(ReceiveCallback), state);
         }
+      }
+      catch (IOException e)
+      {
+        //something in the transport leyer has failed, such as the network connection died
+        //TODO: log the exception details?
+        Disconnect();
       }
       catch (Exception e)
       {

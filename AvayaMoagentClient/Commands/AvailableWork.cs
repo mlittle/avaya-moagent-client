@@ -1,7 +1,7 @@
 ﻿using System;
 namespace AvayaMoagentClient.Commands
 {
-  class AvailableWork : Message
+  public class AvailableWork : Message
   {
     private const string COMMAND = "AGTAvailWork";
 

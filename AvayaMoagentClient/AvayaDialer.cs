@@ -105,6 +105,11 @@ namespace AvayaMoagentClient
       _client.Send(new FinishedItem(completionCode));
     }
 
+    public void HangupCall()
+    {
+      _client.Send(new HangupCall());
+    }
+
     public void ReleaseLine()
     {
       _client.Send(new ReleaseLine());
@@ -160,11 +165,6 @@ namespace AvayaMoagentClient
     }
 
     public void ManualCall()
-    {
-      throw new NotImplementedException();
-    }
-
-    public void HangupCall()
     {
       throw new NotImplementedException();
     }

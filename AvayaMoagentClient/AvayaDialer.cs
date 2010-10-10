@@ -159,6 +159,7 @@ namespace AvayaMoagentClient
       _client.MessageSent -= _client_MessageSent;
       _client.ConnectComplete -= _client_ConnectComplete;
       _client.MessageReceived -= _client_MessageReceived;
+      _client.Disconnected -= _client_Disconnected;
       _client = null;
     }
 

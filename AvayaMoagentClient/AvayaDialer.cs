@@ -154,6 +154,11 @@ namespace AvayaMoagentClient
       _client.Send(new FreeHeadset());
     }
 
+    public void TransferCall()
+    {
+      _client.Send(new TransferCall());
+    }
+
     public void TransferCall(string transferNumber)
     {
       _client.Send(new TransferCall(transferNumber));

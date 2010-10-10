@@ -90,13 +90,15 @@ namespace AvayaMoagentClient
 
     public void Disconnect()
     {
-      _sslWrapper.Close();
+      if (_sslWrapper != null)
+      {
+        _sslWrapper.Close();
+        _sslWrapper.Dispose();
+        _sslWrapper = null;
+      }
 
       if (_client.Connected)
         _client.Close();
-      
-      _sslWrapper.Dispose();
-      _sslWrapper = null;
 
       if (Disconnected != null)
         Disconnected(this, EventArgs.Empty);

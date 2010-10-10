@@ -178,6 +178,12 @@ namespace AvayaMoagentClient
         //TODO: log the exception details?
         Disconnect();
       }
+      catch (ObjectDisposedException e)
+      {
+        //we've been disconnected
+        //TODO: log the exception details?
+        Disconnect();
+      }
       catch (Exception e)
       {
         Debugger.Break();
@@ -227,6 +233,12 @@ namespace AvayaMoagentClient
       catch (IOException e)
       {
         //something in the transport leyer has failed, such as the network connection died
+        //TODO: log the exception details?
+        Disconnect();
+      }
+      catch (ObjectDisposedException e)
+      {
+        //we've been disconnected
         //TODO: log the exception details?
         Disconnect();
       }

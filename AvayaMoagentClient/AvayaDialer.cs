@@ -12,6 +12,7 @@ namespace AvayaMoagentClient
 
     public event MoagentClient.MessageSentHandler MessageSent;
     public event MoagentClient.MessageReceivedHandler MessageReceived;
+    public event MoagentClient.DisconnectedHandler Disconnected;
 
     public AvayaDialer(string host, int port)
     {
@@ -36,12 +37,24 @@ namespace AvayaMoagentClient
       //do something?
     }
 
+    private void _client_Disconnected(object sender, EventArgs e)
+    {
+      if (Disconnected != null)
+        Disconnected(this, e);
+    }
+
+    public bool Connected
+    {
+      get { return _client.Connected; }
+    }
+
     public void Connect()
     {
       _client = new MoagentClient(_host, _port);
       _client.ConnectComplete += _client_ConnectComplete;
       _client.MessageSent += _client_MessageSent;
       _client.MessageReceived += _client_MessageReceived;
+      _client.Disconnected += _client_Disconnected;
       _client.StartConnectAsync();
     }
 

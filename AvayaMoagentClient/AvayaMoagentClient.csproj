@@ -52,6 +52,7 @@
     <Compile Include="AvayaDialer.cs" />
     <Compile Include="Commands\CommandCache.cs" />
     <Compile Include="Commands\ConnectHeadset.cs" />
+    <Compile Include="Commands\ManagedCall.cs" />
     <Compile Include="Commands\HangupCall.cs" />
     <Compile Include="Commands\TransferCall.cs" />
     <Compile Include="Commands\SetDataField.cs" />

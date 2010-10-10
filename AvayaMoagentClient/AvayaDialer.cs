@@ -166,7 +166,7 @@ namespace AvayaMoagentClient
 
     public void ManagedCall()
     {
-      throw new NotImplementedException();
+      _client.Send(new ManagedCall());
     }
 
     public void ManualCall()

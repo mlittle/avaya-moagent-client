@@ -24,7 +24,6 @@ namespace AvayaMoagentClient
   public class MoagentClient
   {
     private int _invokeIdSequence = 1;
-    private static Message lastMsg;
     private Socket _client;
     private SslStream _sslWrapper;
     private string _server;

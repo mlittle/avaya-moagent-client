@@ -9,15 +9,17 @@ namespace AvayaMoagentClient
     private MoagentClient _client;
     private string _host;
     private int _port;
+    private bool _useSSL;
 
     public event MoagentClient.MessageSentHandler MessageSent;
     public event MoagentClient.MessageReceivedHandler MessageReceived;
     public event MoagentClient.DisconnectedHandler Disconnected;
 
-    public AvayaDialer(string host, int port)
+    public AvayaDialer(string host, int port, bool useSSL)
     {
       _host = host;
       _port = port;
+      _useSSL = useSSL;
     }
 
     private void _client_MessageSent(object sender, MessageSentEventArgs e)
@@ -50,7 +52,7 @@ namespace AvayaMoagentClient
 
     public void Connect()
     {
-      _client = new MoagentClient(_host, _port);
+      _client = new MoagentClient(_host, _port, _useSSL);
       _client.ConnectComplete += _client_ConnectComplete;
       _client.MessageSent += _client_MessageSent;
       _client.MessageReceived += _client_MessageReceived;
@@ -101,6 +103,11 @@ namespace AvayaMoagentClient
     public void SetDataField(FieldListType type, string fieldName)
     {
       _client.Send(new SetDataField(type, fieldName));
+    }
+
+    public void SetPassword(string userId, string presentPassword, string newPassword)
+    {
+      _client.Send(new SetPassword(userId, presentPassword, newPassword));
     }
 
     public void AvailableWork()

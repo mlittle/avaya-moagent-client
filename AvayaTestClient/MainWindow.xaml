@@ -35,5 +35,6 @@
         <Button Content="NoFurtherWork" Height="23" HorizontalAlignment="Left" Margin="93,109,0,0" Name="btnNoFurtherWork" VerticalAlignment="Top" Width="95" Click="btnNoFurtherWork_Click" />
         <Button Content="DetachJob" Height="23" HorizontalAlignment="Left" Margin="201,109,0,0" Name="btnDetachJob" VerticalAlignment="Top" Width="75" Click="btnDetachJob_Click" />
         <Button Content="Release" Height="23" HorizontalAlignment="Left" Margin="12,109,0,0" Name="btnRelease" VerticalAlignment="Top" Width="75" Click="btnRelease_Click" />
+        <Button Content="Set Password" Height="23" HorizontalAlignment="Left" Margin="282,109,0,0" Name="btnSetPassword" VerticalAlignment="Top" Width="75" Click="btnSetPassword_Click"/>
     </Grid>
 </Window>

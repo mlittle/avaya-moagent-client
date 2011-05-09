@@ -28,12 +28,15 @@ namespace AvayaTestClient
 
     private void button2_Click(object sender, RoutedEventArgs e)
     {
-      Vm.Avaya.Login("m9057", "9057tmp");
+      //Vm.Avaya.Login("m9057", "mlitt");
+      Vm.Avaya.Login("m9057", "mlitt001");
+      //Vm.Avaya.Login("m9999", "mlitt001");
     }
 
     private void ReserveHeadset_Click(object sender, RoutedEventArgs e)
     {
-      Vm.Avaya.ReserveHeadset("1");
+      //Vm.Avaya.ReserveHeadset("9199");
+      Vm.Avaya.ReserveHeadset("56901");
     }
 
     private void ConnHeadset_Click(object sender, RoutedEventArgs e)
@@ -117,6 +120,13 @@ namespace AvayaTestClient
     private void btnRelease_Click(object sender, RoutedEventArgs e)
     {
       Vm.Avaya.ReleaseLine();
+    }
+
+    private void btnSetPassword_Click(object sender, RoutedEventArgs e)
+    {
+      //Vm.Avaya.SetPassword("m9057", "mlitt001", "Kpk1ig2o");
+      //Vm.Avaya.SetPassword("m9057", "Kpk1ig2o", "mlitt001");
+      Vm.Avaya.SetPassword("m9999", "temp", "mlitt001");
     }
   }
 }

@@ -14,7 +14,7 @@ namespace AvayaMoagentClient
   // State object for receiving data from remote device.
   public class StateObject
   {
-    public Socket WorkSocket { get; set; }
+    public Socket Stream { get; set; }
     public SslStream SecureStream { get; set; }
     public const int BufferSize = 256;
     public byte[] buffer = new byte[BufferSize];
@@ -28,6 +28,7 @@ namespace AvayaMoagentClient
     private SslStream _sslWrapper;
     private string _server;
     private int _port;
+    private readonly bool _useSSL;
     private X509List _xList;
     private X509Chain _xChain;
 
@@ -40,11 +41,15 @@ namespace AvayaMoagentClient
     public event MessageReceivedHandler MessageReceived;
     public event DisconnectedHandler Disconnected;
 
-    public MoagentClient(string host, int port)
+    public MoagentClient(string host, int port): this(host, port, false)
+    {
+    }
+    
+    public MoagentClient(string host, int port, bool useSSL)
     {
       _server = host;
       _port = port;
-      
+      _useSSL = useSSL;
       _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
       var certBio = BIO.File(@".\agentClientCert.p12", "r");
@@ -76,12 +81,19 @@ namespace AvayaMoagentClient
 
       client.EndConnect(ar);
 
-      var stream = new NetworkStream(_client, FileAccess.ReadWrite, true);
-      _sslWrapper = new SslStream(stream, false, ValidateRemoteCert, clientCertificateSelectionCallback);
+      if (_useSSL)
+      {
+        var stream = new NetworkStream(_client, FileAccess.ReadWrite, true);
+        _sslWrapper = new SslStream(stream, false, ValidateRemoteCert, clientCertificateSelectionCallback);
 
-      _sslWrapper.AuthenticateAsClient(_server, _xList, _xChain, SslProtocols.Default, SslStrength.All, false);
+        _sslWrapper.AuthenticateAsClient(_server, _xList, _xChain, SslProtocols.Default, SslStrength.All, false);
 
-      Receive(_sslWrapper);
+        SecureReceive(_sslWrapper);
+      }
+      else
+      {
+        Receive(client);
+      }
 
       if (ConnectComplete != null)
         ConnectComplete(this, EventArgs.Empty);
@@ -103,14 +115,29 @@ namespace AvayaMoagentClient
         Disconnected(this, EventArgs.Empty);
     }
 
-    private void Receive(SslStream client)
+    private void Receive(Socket client)
+    {
+      try
+      {
+        var state = new StateObject();
+        state.Stream = client;
+        
+        client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine(e.ToString());
+      }
+    }
+
+    private void SecureReceive(SslStream client)
     {
       try
       {
         var state = new StateObject();
         state.SecureStream = client;
-        
-        client.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(ReceiveCallback), state);
+
+        client.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(SecureReceiveCallback), state);
       }
       catch (Exception e)
       {
@@ -119,6 +146,78 @@ namespace AvayaMoagentClient
     }
 
     private void ReceiveCallback(IAsyncResult ar)
+    {
+      var content = String.Empty;
+
+      try
+      {
+        // Retrieve the state object and the client socket 
+        // from the asynchronous state object.
+        var state = (StateObject)ar.AsyncState;
+        var handler = state.Stream;
+        Message lastMsg = null;
+
+        if (handler.Connected)
+        {
+          // Read data from the remote device.
+          int bytesRead = handler.EndReceive(ar);
+
+          if (bytesRead > 0)
+          {
+            // There  might be more data, so store the data received so far.
+            state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+            // Check for end-of-file tag. If it is not there, read more data.
+            content = state.sb.ToString();
+            if (content.IndexOf((char)3) > -1)
+            {
+              var msgs = new List<string>();
+              var msg = new StringBuilder();
+
+              foreach (var ch in content)
+              {
+                if (ch != (char)3)
+                  msg.Append(ch);
+                else
+                {
+                  msg.Append(ch);
+                  msgs.Add(msg.ToString());
+                  msg.Length = 0;
+                }
+              }
+
+              state.sb.Length = 0;
+              state.sb.Append(msg.ToString());
+
+              lastMsg = _LogMessagesReceived(msgs);
+            }
+          }
+
+          if (!(lastMsg != null &&
+                lastMsg.Type == Message.MessageType.Response &&
+                lastMsg.Command.Trim() == "AGTLogoff"))
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+        }
+      }
+      catch (IOException e)
+      {
+        //something in the transport leyer has failed, such as the network connection died
+        //TODO: log the exception details?
+        Disconnect();
+      }
+      catch (ObjectDisposedException e)
+      {
+        //we've been disconnected
+        //TODO: log the exception details?
+        Disconnect();
+      }
+      catch (Exception e)
+      {
+        Debugger.Break();
+      }
+    }
+
+    private void SecureReceiveCallback(IAsyncResult ar)
     {
       var content = String.Empty;
 
@@ -170,7 +269,7 @@ namespace AvayaMoagentClient
           if (!(lastMsg != null && 
                 lastMsg.Type == Message.MessageType.Response && 
                 lastMsg.Command.Trim() == "AGTLogoff"))
-            handler.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(ReceiveCallback), state);
+            handler.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(SecureReceiveCallback), state);
         }
       }
       catch (IOException e)
@@ -219,10 +318,45 @@ namespace AvayaMoagentClient
       byte[] byteData = Encoding.ASCII.GetBytes(data);
 
       // Begin sending the data to the remote device.
-      _sslWrapper.BeginWrite(byteData, 0, byteData.Length, new AsyncCallback(SendCallback), _sslWrapper);
+      //TODO: Pick secure vs nonsecure send
+      if (_useSSL)
+      {
+        _sslWrapper.BeginWrite(byteData, 0, byteData.Length, new AsyncCallback(SecureSendCallback), _sslWrapper);  
+      }
+      else
+      {
+        _client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), _client);
+      }
     }
 
     private void SendCallback(IAsyncResult ar)
+    {
+      try
+      {
+        // Retrieve the socket from the state object.
+        var client = (Socket)ar.AsyncState;
+        client.EndSend(ar);
+        //TODO: Tell somebody?
+      }
+      catch (IOException e)
+      {
+        //something in the transport leyer has failed, such as the network connection died
+        //TODO: log the exception details?
+        Disconnect();
+      }
+      catch (ObjectDisposedException e)
+      {
+        //we've been disconnected
+        //TODO: log the exception details?
+        Disconnect();
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine(e.ToString());
+      }
+    }
+
+    private void SecureSendCallback(IAsyncResult ar)
     {
       try
       {

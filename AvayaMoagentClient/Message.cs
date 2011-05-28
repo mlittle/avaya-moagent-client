@@ -135,12 +135,12 @@ namespace AvayaMoagentClient
 
       //Server has an additional flag that indicates if the message is an Error
       //Client does not add this flag
-      //if (Type != MessageType.Command)
-      //{
-      //  msgContents.Append(_RECORD_SEPERATOR);
-      //  msgContents.Append(IsError ? "1" : "0");
-      //  msgContentsSize++;
-      //}
+      if (Type != MessageType.Command)
+      {
+        msgContents.Append(_RECORD_SEPERATOR);
+        msgContents.Append(IsError ? "1" : "0");
+        msgContentsSize++;
+      }
 
       foreach (var content in Contents)
       {

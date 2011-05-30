@@ -1,0 +1,1 @@
+Avaya Moagent Client is a fully-managed replacement for the COM-component provided as part of the Avaya SDK.

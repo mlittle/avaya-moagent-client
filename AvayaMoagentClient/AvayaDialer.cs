@@ -20,24 +20,37 @@
 //WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 //ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+using System;
 using AvayaMoagentClient.Commands;
+using AvayaMoagentClient.Enums;
 
 namespace AvayaMoagentClient
 {
   public class AvayaDialer
   {
     private MoagentClient _client;
+    private string _host;
+    private int _port;
+    private bool _useSSL;
 
+    public event MoagentClient.MessageSentHandler MessageSent;
     public event MoagentClient.MessageReceivedHandler MessageReceived;
+    public event MoagentClient.DisconnectedHandler Disconnected;
 
-    public AvayaDialer(string host, int port)
+    public AvayaDialer(string host, int port, bool useSSL)
     {
-      _client = new MoagentClient(host, port);
-      _client.ConnectComplete += _client_ConnectComplete;
-      _client.MessageReceived += _client_MessageReceived;
+      _host = host;
+      _port = port;
+      _useSSL = useSSL;
     }
 
-    void _client_MessageReceived(object sender, MessageReceivedEventArgs e)
+    private void _client_MessageSent(object sender, MessageSentEventArgs e)
+    {
+      if (MessageSent != null)
+        MessageSent(this, e);
+    }
+
+    private void _client_MessageReceived(object sender, MessageReceivedEventArgs e)
     {
       if (MessageReceived != null)
         MessageReceived(this, e);
@@ -48,8 +61,24 @@ namespace AvayaMoagentClient
       //do something?
     }
 
+    private void _client_Disconnected(object sender, EventArgs e)
+    {
+      if (Disconnected != null)
+        Disconnected(this, e);
+    }
+
+    public bool Connected
+    {
+      get { return _client.Connected; }
+    }
+
     public void Connect()
     {
+      _client = new MoagentClient(_host, _port, _useSSL);
+      _client.ConnectComplete += _client_ConnectComplete;
+      _client.MessageSent += _client_MessageSent;
+      _client.MessageReceived += _client_MessageReceived;
+      _client.Disconnected += _client_Disconnected;
       _client.StartConnectAsync();
     }
 
@@ -78,6 +107,66 @@ namespace AvayaMoagentClient
       _client.Send(CommandCache.ListAllJobs);
     }
 
+    public void AttachJob(string jobname)
+    {
+      _client.Send(new AttachJob(jobname));
+    }
+
+    public void SetWorkClass(WorkClass workClass)
+    {
+      _client.Send(new SetWorkClass(workClass));
+    }
+
+    public void SetNotifyKeyField(FieldListType type, string fieldName)
+    {
+      _client.Send(new SetNotifyKeyField(type, fieldName)); 
+    }
+
+    public void SetDataField(FieldListType type, string fieldName)
+    {
+      _client.Send(new SetDataField(type, fieldName));
+    }
+
+    public void SetPassword(string userId, string presentPassword, string newPassword)
+    {
+      _client.Send(new SetPassword(userId, presentPassword, newPassword));
+    }
+
+    public void AvailableWork()
+    {
+      _client.Send(CommandCache.AvailableWork);
+    }
+
+    public void ReadyNextItem()
+    {
+      _client.Send(CommandCache.ReadyNextItem);
+    }
+
+    public void FinishedItem(string completionCode)
+    {
+      _client.Send(new FinishedItem(completionCode));
+    }
+
+    public void HangupCall()
+    {
+      _client.Send(CommandCache.HangupCall);
+    }
+
+    public void ReleaseLine()
+    {
+      _client.Send(CommandCache.ReleaseLine);
+    }
+
+    public void NoFurtherWork()
+    {
+      _client.Send(CommandCache.NoFurtherWork);
+    }
+
+    public void DetachJob()
+    {
+      _client.Send(CommandCache.DetachJob);
+    }
+    
     public void ListActiveJobs()
     {
       _client.Send(new ListJobs(Commands.ListJobs.JobListingType.All, Commands.ListJobs.JobStatus.Active));
@@ -96,6 +185,47 @@ namespace AvayaMoagentClient
     public void Disconnect()
     {
       _client.Disconnect();
+      _client.MessageSent -= _client_MessageSent;
+      _client.ConnectComplete -= _client_ConnectComplete;
+      _client.MessageReceived -= _client_MessageReceived;
+      _client.Disconnected -= _client_Disconnected;
+      _client = null;
+    }
+
+    public void FreeHeadset()
+    {
+      _client.Send(CommandCache.FreeHeadset);
+    }
+
+    public void TransferCall()
+    {
+      _client.Send(CommandCache.TransferCall);
+    }
+
+    public void TransferCall(string transferNumber)
+    {
+      _client.Send(new TransferCall(transferNumber));
+    }
+
+    public void ManagedCall()
+    {
+      _client.Send(CommandCache.ManagedCall);
+    }
+
+    public void ManualCall()
+    {
+      throw new NotImplementedException();
+    }
+
+    public void DialDigit(string digit)
+    {
+      throw new NotImplementedException();
+    }
+
+    public void SetCallback(string callbackDate, string callbackTime, string phoneIndex, string recallName, 
+        string recallNumber)
+    {
+      throw new NotImplementedException();
     }
 
     public void SendCommand(Message command)

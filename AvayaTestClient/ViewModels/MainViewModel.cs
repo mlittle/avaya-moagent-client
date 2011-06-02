@@ -36,17 +36,74 @@ namespace AvayaTestClient.ViewModels
 
     public MainViewModel()
     {
-      Avaya = new AvayaDialer("192.168.8.12", 22700);
-      //Avaya = new AvayaDialer("127.0.0.1", 22700);
+      //Avaya = new AvayaDialer("192.168.16.13", 22700);
+      Avaya = new AvayaDialer("192.168.80.79", 22700, true);
       Avaya.MessageReceived += _avaya_MessageReceived;
+      Avaya.MessageSent += Avaya_MessageSent;
       Messages = new ObservableCollection<Message>();
 
       UIAction = ((uiAction) => uiAction());
     }
 
+    void Avaya_MessageSent(object sender, MessageSentEventArgs e)
+    {
+      UIAction(() => Messages.Insert(0, e.Message));
+    }
+
     void _avaya_MessageReceived(object sender, MessageReceivedEventArgs e)
     {
       UIAction(() => Messages.Insert(0,e.Message));
+
+      switch (e.Message.Type)
+      {
+        case Message.MessageType.Command:
+          break;
+        case Message.MessageType.Pending:
+          break;
+        case Message.MessageType.Data:
+          break;
+        case Message.MessageType.Response:
+          switch (e.Message.Command.Trim())
+          {
+            case "AGTLogon":
+              //Avaya.ReserveHeadset("1");
+              break;
+            case "AGTReserveHeadset":
+              //Avaya.ConnectHeadset();
+              break;
+            case "AGTConnHeadset":
+              //Avaya.ListState();
+              break;
+            //case "AGTListState":
+            //  Avaya.DisconnectHeadset();
+            //  break;
+            //case "AGTDisconnHeadset":
+            //  Avaya.SendCommand(new Message("AGTFreeHeadset", Message.MessageType.Command));
+            //  break;
+            //case "AGTFreeHeadset":
+            //  Avaya.Logoff();
+            //  break;
+            //case "AGTLogoff":
+            //  Avaya.Disconnect();
+            //  break;
+           }
+
+          break;
+        case Message.MessageType.Busy:
+          break;
+        case Message.MessageType.Notification:
+          switch (e.Message.Command.Trim())
+          {
+            case "AGTSTART":
+              //Avaya.Login("m9057","mlitt001");
+              break;
+          }
+          break;
+        case Message.MessageType.Undefined:
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
+      }
     }
 
     public event PropertyChangedEventHandler PropertyChanged;

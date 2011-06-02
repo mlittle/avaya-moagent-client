@@ -68,31 +68,9 @@ namespace AvayaMoagentClient
       set { _invokeId = value; }
     }
 
-    public string Segments
+    public int Segments
     {
-      get
-      {
-        var ret = string.Empty;
-        switch (Type)
-        {
-          case MessageType.Command:
-            ret = Contents.Count.ToString();
-            break;
-          case MessageType.Pending:
-          case MessageType.Data:
-          case MessageType.Response:
-          case MessageType.Busy:
-          case MessageType.Notification:
-            ret = (Contents.Count + 1).ToString();
-            break;
-          case MessageType.Undefined:
-          default:
-            throw new ArgumentOutOfRangeException();
-            break;
-        }
-
-        return ret;
-      }
+      get { return Contents.Count; }
     }
 
     public string RawMessage
@@ -115,9 +93,29 @@ namespace AvayaMoagentClient
       }
     }
 
-    public bool IsError { get; set; }
+    public bool IsError
+    {
+      get
+      {
+        if (Contents[0] == "1")
+          return true;
+
+        return false;
+      }
+
+    }
     public List<string> Contents { get; set; }
     public bool CacheRawMessage { get; protected set; }
+
+    public string Code
+    {
+      get
+      {
+        //Codes should only be 6 chars; except in some odd cases where the dialer tacks a message to the end
+        //Ex: AGTSystemError      NAgent server        12708 0   2   1E70002,AGTConnHeadset_RESP(MAKECONN)
+        return Contents[1].Substring(0,6);  
+      }
+    }
 
     public enum MessageType
     {
@@ -154,27 +152,32 @@ namespace AvayaMoagentClient
     private string BuildMessage()
     {
       var msg = new StringBuilder();
+      var msgContents = new StringBuilder();
+      var msgContentsSize = 0;
+
+      //Server has an additional flag that indicates if the message is an Error
+      //Client does not add this flag
+      if (Type != MessageType.Command)
+      {
+        msgContents.Append(_RECORD_SEPERATOR);
+        msgContents.Append(IsError ? "1" : "0");
+        msgContentsSize++;
+      }
+
+      foreach (var content in Contents)
+      {
+        msgContents.Append(_RECORD_SEPERATOR);
+        msgContents.Append(content);
+        msgContentsSize++;
+      }
 
       msg.Append(Command.PadRight(20, ' '));
       msg.Append(((char)Type).ToString().PadRight(1, ' '));
       msg.Append(OrigId.PadRight(20, ' '));
       msg.Append(ProcessId.PadRight(6, ' '));
       msg.Append(InvokeId.PadRight(4, ' '));
-      msg.Append(Segments.PadRight(4, ' '));
-
-      //Server has an additional flag that indicates if the message is an Error
-      //Client does not add this flag
-      if (Type != MessageType.Command)
-      {
-        msg.Append(_RECORD_SEPERATOR);
-        msg.Append(IsError ? "1" : "0");
-      }
-
-      foreach (var content in Contents)
-      {
-        msg.Append(_RECORD_SEPERATOR);
-        msg.Append(content);
-      }
+      msg.Append(msgContentsSize.ToString().PadRight(4, ' '));
+      msg.Append(msgContents);
 
       msg.Append(_END_OF_LINE);
 
@@ -186,16 +189,16 @@ namespace AvayaMoagentClient
       var ret = new Message();
       ret.RawMessage = raw;
 
-      ret.Command = raw.Substring(0, 20);
-      ret.Type = (MessageType)char.Parse(raw.Substring(20, 1));
-      ret.OrigId = raw.Substring(21, 20);
-      ret.ProcessId = raw.Substring(41, 6);
-      ret.InvokeId = raw.Substring(47, 4);
+      ret.Command = raw.Substring(0, 20).Trim();
+      ret.Type = (MessageType) char.Parse(raw.Substring(20, 1));
+      ret.OrigId = raw.Substring(21, 20).Trim();
+      ret.ProcessId = raw.Substring(41, 6).Trim();
+      ret.InvokeId = raw.Substring(47, 4).Trim();
       ret.Contents = new List<string>();
 
       foreach (var data in raw.Substring(55).Replace(_END_OF_LINE.ToString(), string.Empty).Split(_RECORD_SEPERATOR))
       {
-        if (!string.IsNullOrEmpty(data) && data != "0")
+        if (!string.IsNullOrEmpty(data))
           ret.Contents.Add(data);
       }
 

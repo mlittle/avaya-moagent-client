@@ -22,6 +22,8 @@
 
 using System.Windows;
 using AvayaMoagentClient;
+using AvayaMoagentClient.Commands;
+using AvayaMoagentClient.Enums;
 using AvayaTestClient.ViewModels;
 
 namespace AvayaTestClient
@@ -48,12 +50,15 @@ namespace AvayaTestClient
 
     private void button2_Click(object sender, RoutedEventArgs e)
     {
-      Vm.Avaya.Login("m9057", "mlitt");
+      //Vm.Avaya.Login("m9057", "mlitt");
+      Vm.Avaya.Login("m9057", "mlitt001");
+      //Vm.Avaya.Login("m9999", "mlitt001");
     }
 
     private void ReserveHeadset_Click(object sender, RoutedEventArgs e)
     {
-      Vm.Avaya.ReserveHeadset("1590");
+      //Vm.Avaya.ReserveHeadset("9199");
+      Vm.Avaya.ReserveHeadset("56901");
     }
 
     private void ConnHeadset_Click(object sender, RoutedEventArgs e)
@@ -90,6 +95,60 @@ namespace AvayaTestClient
     private void btnFreeHeadset_Click(object sender, RoutedEventArgs e)
     {
       Vm.Avaya.SendCommand(new Message("AGTFreeHeadset", Message.MessageType.Command));
+    }
+
+    private void btnSetWorkClass_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.SetWorkClass(WorkClass.Outbound);
+    }
+
+    private void btnAttachJob_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.AttachJob("test34");
+    }
+
+    private void btnSetFields_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.SetNotifyKeyField(FieldListType.Outbound, "ACTID");
+      Vm.Avaya.SetDataField(FieldListType.Outbound, "ACTID");
+      Vm.Avaya.SetDataField(FieldListType.Outbound, "PHONE1");
+    }
+
+    private void btnGoAvailable_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.AvailableWork();
+    }
+
+    private void btnReadyNextItem_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.ReadyNextItem();
+    }
+
+    private void btnFinishedItem_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.FinishedItem("20");
+    }
+
+    private void btnNoFurtherWork_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.NoFurtherWork();
+    }
+
+    private void btnDetachJob_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.DetachJob();
+    }
+
+    private void btnRelease_Click(object sender, RoutedEventArgs e)
+    {
+      Vm.Avaya.ReleaseLine();
+    }
+
+    private void btnSetPassword_Click(object sender, RoutedEventArgs e)
+    {
+      //Vm.Avaya.SetPassword("m9057", "mlitt001", "Kpk1ig2o");
+      //Vm.Avaya.SetPassword("m9057", "Kpk1ig2o", "mlitt001");
+      Vm.Avaya.SetPassword("m9999", "temp", "mlitt001");
     }
   }
 }

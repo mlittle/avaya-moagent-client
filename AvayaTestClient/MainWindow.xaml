@@ -26,5 +26,15 @@
         <Button Content="Logoff" Height="23" HorizontalAlignment="Left" Margin="306,41,0,0" Name="Logoff" VerticalAlignment="Top" Width="75" Click="Logoff_Click" />
         <Button Content="Disconnect" Height="23" HorizontalAlignment="Left" Margin="387,41,0,0" Name="Disconnect" VerticalAlignment="Top" Width="75" Click="Disconnect_Click" />
         <Button Content="Free Headset" Height="23" HorizontalAlignment="Left" Margin="216,41,0,0" Name="btnFreeHeadset" VerticalAlignment="Top" Width="84" Click="btnFreeHeadset_Click" />
+        <Button Content="Set WorkClass" Height="23" HorizontalAlignment="Left" Margin="12,83,0,0" Name="btnSetWorkClass" VerticalAlignment="Top" Width="75" Click="btnSetWorkClass_Click" />
+        <Button Content="AttachJob" Height="23" HorizontalAlignment="Left" Margin="93,83,0,0" Name="btnAttachJob" VerticalAlignment="Top" Width="75" Click="btnAttachJob_Click" />
+        <Button Content="Set Fields" Height="23" HorizontalAlignment="Left" Margin="174,83,0,0" Name="btnSetFields" VerticalAlignment="Top" Width="75" Click="btnSetFields_Click" />
+        <Button Content="GoAvailable" Height="23" HorizontalAlignment="Left" Margin="255,83,0,0" Name="btnGoAvailable" VerticalAlignment="Top" Width="75" Click="btnGoAvailable_Click" />
+        <Button Content="ReadyNext" Height="23" HorizontalAlignment="Left" Margin="336,83,0,0" Name="btnReadyNextItem" VerticalAlignment="Top" Width="75" Click="btnReadyNextItem_Click" />
+        <Button Content="FinishedItem" Height="23" HorizontalAlignment="Left" Margin="416,83,0,0" Name="btnFinishedItem" VerticalAlignment="Top" Width="75" Click="btnFinishedItem_Click" />
+        <Button Content="NoFurtherWork" Height="23" HorizontalAlignment="Left" Margin="93,109,0,0" Name="btnNoFurtherWork" VerticalAlignment="Top" Width="95" Click="btnNoFurtherWork_Click" />
+        <Button Content="DetachJob" Height="23" HorizontalAlignment="Left" Margin="201,109,0,0" Name="btnDetachJob" VerticalAlignment="Top" Width="75" Click="btnDetachJob_Click" />
+        <Button Content="Release" Height="23" HorizontalAlignment="Left" Margin="12,109,0,0" Name="btnRelease" VerticalAlignment="Top" Width="75" Click="btnRelease_Click" />
+        <Button Content="Set Password" Height="23" HorizontalAlignment="Left" Margin="282,109,0,0" Name="btnSetPassword" VerticalAlignment="Top" Width="75" Click="btnSetPassword_Click"/>
     </Grid>
 </Window>

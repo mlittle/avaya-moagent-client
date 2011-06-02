@@ -52,15 +52,18 @@ namespace AvayaMoagentClient
       _useSSL = useSSL;
       _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-      var certBio = BIO.File(@".\agentClientCert.p12", "r");
-      X509Certificate clientCert = X509Certificate.FromPKCS12(certBio, string.Empty);
-      var serverBio = BIO.File(@".\ProactiveContactCA.cer", "r");
-      X509Certificate serverCert = X509Certificate.FromDER(serverBio);
+      if (_useSSL)
+      {
+        var certBio = BIO.File(@".\agentClientCert.p12", "r");
+        X509Certificate clientCert = X509Certificate.FromPKCS12(certBio, string.Empty);
+        var serverBio = BIO.File(@".\ProactiveContactCA.cer", "r");
+        X509Certificate serverCert = X509Certificate.FromDER(serverBio);
 
-      _xList = new X509List();
-      _xList.Add(clientCert);
-      _xChain = new X509Chain();
-      _xChain.Add(serverCert);
+        _xList = new X509List();
+        _xList.Add(clientCert);
+        _xChain = new X509Chain();
+        _xChain.Add(serverCert);
+      }
     }
 
     public bool Connected

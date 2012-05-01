@@ -60,11 +60,7 @@ namespace AvayaPDSEmulator
     {
       // Data buffer for incoming data.
       var bytes = new Byte[1024];
-
-      IPHostEntry ipHostInfo = Dns.GetHostEntry("devmlittle.acttoday.com");
-      IPAddress ip = ipHostInfo.AddressList[1];
-      //var ip = IPAddress.Parse("127.0.0.1");
-      var localEndPoint = new IPEndPoint(ip, 22700);
+      var localEndPoint = new IPEndPoint(IPAddress.Any, 22700);
 
       // Create a TCP/IP socket.
       var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);

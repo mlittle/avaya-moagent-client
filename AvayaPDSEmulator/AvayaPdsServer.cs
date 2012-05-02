@@ -36,30 +36,24 @@ namespace AvayaPDSEmulator
   public class StateObject
   {
     public Guid Id = Guid.NewGuid();
-    public Socket workSocket = null;
+    public Socket WorkSocket;
     public const int BufferSize = 1024;
-    public byte[] buffer = new byte[BufferSize];
+    public byte[] Buffer = new byte[BufferSize];
     public StringBuilder sb = new StringBuilder();
     public string CurrentState = "S70004";
     public string CurrentJob = string.Empty;
-    public bool LeaveJob = false;
-    public bool Disconnect = false;
+    public bool LeaveJob;
+    public bool Disconnect;
   }
 
   public class AvayaPdsServer
   {
     // Thread signal.
-    public static ManualResetEvent allDone = new ManualResetEvent(false);
-    public static Dictionary<Guid, StateObject> conns = new Dictionary<Guid, StateObject>();
-
-    public AvayaPdsServer()
-    {
-    }
+    public static ManualResetEvent AllDone = new ManualResetEvent(false);
+    public static Dictionary<Guid, StateObject> States = new Dictionary<Guid, StateObject>();
 
     public void StartListening()
     {
-      // Data buffer for incoming data.
-      var bytes = new Byte[1024];
       var localEndPoint = new IPEndPoint(IPAddress.Any, 22700);
 
       // Create a TCP/IP socket.
@@ -74,14 +68,14 @@ namespace AvayaPDSEmulator
         while (true)
         {
           // Set the event to nonsignaled state.
-          allDone.Reset();
+          AllDone.Reset();
 
           // Start an asynchronous socket to listen for connections.
           Console.WriteLine("Waiting for a connection...");
           listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
           // Wait until a connection is made before continuing.
-          allDone.WaitOne();
+          AllDone.WaitOne();
         }
 
       }
@@ -97,16 +91,16 @@ namespace AvayaPDSEmulator
     public static void AcceptCallback(IAsyncResult ar)
     {
       // Signal the main thread to continue.
-      allDone.Set();
+      AllDone.Set();
 
       // Get the socket that handles the client request.
       var listener = (Socket)ar.AsyncState;
       var handler = listener.EndAccept(ar);
 
       // Create the state object.
-      var state = new StateObject { workSocket = handler };
+      var state = new StateObject { WorkSocket = handler };
 
-      conns.Add(state.Id, state);
+      States.Add(state.Id, state);
       var startMsg = new Message
                           {
                             Command = "AGTSTART",
@@ -114,29 +108,29 @@ namespace AvayaPDSEmulator
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "AGENT_STARTUP" }
+                            Contents = new List<string> { "AGENT_STARTUP" }
                           };
-      Send(state, new List<string>() { startMsg.RawMessage });
+      Send(state, new List<string> { startMsg.RawMessage });
     }
 
     public static void ReadCallback(IAsyncResult ar)
     {
-      var content = String.Empty;
+      string content;
 
       try
       {
         // Retrieve the state object and the handler socket
         // from the asynchronous state object.
         var state = (StateObject)ar.AsyncState;
-        var handler = state.workSocket;
+        var handler = state.WorkSocket;
 
         // Read data from the client socket. 
-        int bytesRead = handler.EndReceive(ar);
+        var bytesRead = handler.EndReceive(ar);
 
         if (bytesRead > 0)
         {
           // There  might be more data, so store the data received so far.
-          state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+          state.sb.Append(Encoding.ASCII.GetString(state.Buffer, 0, bytesRead));
 
           // Check for end-of-file tag. If it is not there, read 
           // more data.
@@ -167,27 +161,27 @@ namespace AvayaPDSEmulator
           else
           {
             // Not all data received. Get more.
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+            handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
           }
         }
       }
-      catch (SocketException e)
+      catch (SocketException)
       {
         Disconnect((StateObject)ar.AsyncState);
       }
-      catch (IOException e)
+      catch (IOException)
       {
         //something in the transport leyer has failed, such as the network connection died
         //TODO: log the exception details?
         Disconnect((StateObject)ar.AsyncState);
       }
-      catch (ObjectDisposedException e)
+      catch (ObjectDisposedException)
       {
         //we've been disconnected
         //TODO: log the exception details?
         Disconnect((StateObject)ar.AsyncState);
       }
-      catch (Exception e)
+      catch (Exception)
       {
         Debugger.Break();
       }
@@ -197,23 +191,23 @@ namespace AvayaPDSEmulator
     {
       if (state != null)
       {
-        if (conns.ContainsKey(state.Id))
-          conns.Remove(state.Id);
+        if (States.ContainsKey(state.Id))
+          States.Remove(state.Id);
 
-        if (state.workSocket != null && state.workSocket.Connected)
+        if (state.WorkSocket != null && state.WorkSocket.Connected)
         {
-          state.workSocket.Close(2);
+          state.WorkSocket.Close(2);
         }
       }
     }
 
-    private static void Send(StateObject state, List<string> data)
+    private static void Send(StateObject state, IEnumerable<string> data)
     {
       foreach (var msg in data)
       {
         if (msg.Contains("IPOP"))
         {
-          foreach (var conn in conns.Values)
+          foreach (var conn in States.Values)
           {
             if (conn.Id != state.Id && (conn.CurrentState == "S70001" || conn.CurrentState == "S70000"))
             {
@@ -223,7 +217,7 @@ namespace AvayaPDSEmulator
         }
         else if (msg.Contains("POP"))
         {
-          foreach (var conn in conns.Values)
+          foreach (var conn in States.Values)
           {
             if (conn.Id != state.Id && (conn.CurrentState == "S70001" || conn.CurrentState == "S70000"))
             {
@@ -233,7 +227,7 @@ namespace AvayaPDSEmulator
         }
         else if (msg.Contains("MAN"))
         {
-          foreach (var conn in conns.Values)
+          foreach (var conn in States.Values)
           {
             if (conn.Id != state.Id && (conn.CurrentState == "S70001" || conn.CurrentState == "S70000"))
             {
@@ -243,7 +237,7 @@ namespace AvayaPDSEmulator
         }
         else if (msg.Contains("BTRANS"))
         {
-          foreach (var conn in conns.Values)
+          foreach (var conn in States.Values)
           {
             if (conn.Id != state.Id && (conn.CurrentState == "S70001" || conn.CurrentState == "S70000"))
             {
@@ -253,7 +247,7 @@ namespace AvayaPDSEmulator
         }
         else if (msg.Contains("TRANS"))
         {
-          foreach (var conn in conns.Values)
+          foreach (var conn in States.Values)
           {
             if (conn.Id != state.Id && (conn.CurrentState == "S70001" || conn.CurrentState == "S70000"))
             {
@@ -268,7 +262,7 @@ namespace AvayaPDSEmulator
       }
 
       if (!state.Disconnect)
-        state.workSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+        state.WorkSocket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
       else
       {
         Disconnect(state);
@@ -290,8 +284,8 @@ namespace AvayaPDSEmulator
 
     private static void _HandleMessage(StateObject state, string data)
     {
-      var handler = state.workSocket;
-      Console.WriteLine("Rcvd ({0}):" + data, DateTime.Now.ToString());
+      var handler = state.WorkSocket;
+      Console.WriteLine("Rcvd ({0}):" + data, DateTime.Now);
 
       var m = Message.ParseMessage(data);
 
@@ -299,41 +293,6 @@ namespace AvayaPDSEmulator
       {
         case "POP":
           state.CurrentState = "S70000";
-          //_WriteMessage(handler,
-          //    new Message
-          //      {
-          //        Command = "AGTCallNotify",
-          //        Type = Message.MessageType.Notification,
-          //        OrigId = "Agent server",
-          //        ProcessId = "26621",
-          //        InvokeId = "0",
-          //        Segments = "5",
-          //        Contents =
-          //          new List<string>() { "M00001", "Home Phone - 479-273-7762", "OUTBOUND", "CUSTID,71481" }
-          //      });
-          //_WriteMessage(handler,
-          //              new Message
-          //                {
-          //                  Command = "AGTCallNotify",
-          //                  Type = Message.MessageType.Notification,
-          //                  OrigId = "Agent server",
-          //                  ProcessId = "26621",
-          //                  InvokeId = "0",
-          //                  Segments = "10", //plus one to the number of fields
-          //                  Contents =
-          //                    new List<string>()
-          //                    {
-          //                      "M00001",
-          //                      "CUSTID,71481",
-          //                      "PHONE1,4792737762",
-          //                      "PHONE2,",
-          //                      "COAPPSIG,71980",
-          //                      "PHONE3,",
-          //                      "PHONE4,",
-          //                      "PHONE5,",
-          //                      "CURPHONE,01"
-          //                    }
-          //                });
           _WriteMessage(handler,
                         new Message
                           {
@@ -342,8 +301,7 @@ namespace AvayaPDSEmulator
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents =
-  new List<string>() { "M00001", "Home Phone - 479-273-7762", "OUTBOUND", "CUSTID,100" }
+                            Contents = new List<string> { "M00001", "Home Phone - 479-273-7762", "OUTBOUND", "CUSTID,100" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -353,9 +311,8 @@ namespace AvayaPDSEmulator
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents =
-  new List<string>()
-                                {
+                            Contents = new List<string>
+                                         {
                                   "M00001",
                                   "CUSTID,100",
                                   "PHONE1,4235555555",
@@ -375,7 +332,7 @@ namespace AvayaPDSEmulator
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "MAN":
@@ -388,8 +345,7 @@ namespace AvayaPDSEmulator
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents =
-new List<string>() { "M00001", "Home Phone - 423-555-5555 (Preview)", "MANAGED", "ACTID,100" }
+                          Contents = new List<string> { "M00001", "Home Phone - 423-555-5555 (Preview)", "MANAGED", "ACTID,100" }
                         });
           _WriteMessage(handler,
                         new Message
@@ -399,8 +355,7 @@ new List<string>() { "M00001", "Home Phone - 423-555-5555 (Preview)", "MANAGED",
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents =
-new List<string>()
+                          Contents = new List<string>
                                 {
                                   "M00001",
                                   "ACTID,700",
@@ -426,7 +381,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "M00000" }
+                          Contents = new List<string> { "M00000" }
                         });
 
           Thread.Sleep(5000);
@@ -438,7 +393,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "S28833" }
+                          Contents = new List<string> { "S28833" }
                         });
           Thread.Sleep(7000);
           _WriteMessage(handler,
@@ -449,7 +404,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "M00001","(CONNECT)" }
+                          Contents = new List<string> { "M00001","(CONNECT)" }
                         });
           _WriteMessage(handler,
               new Message
@@ -459,7 +414,7 @@ new List<string>()
                 OrigId = "Agent server",
                 ProcessId = "26621",
                 InvokeId = "0",
-                Contents = new List<string>() { "M00000" }
+                Contents = new List<string> { "M00000" }
               });
           break;
         case "IPOP":
@@ -472,8 +427,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents =
-  new List<string>() { "M00001", "INBOUND CALL * 11-20 SECS. WAITING", "INBOUND" }
+                          Contents = new List<string> { "M00001", "INBOUND CALL * 11-20 SECS. WAITING", "INBOUND" }
                         });
           _WriteMessage(handler,
                         new Message
@@ -483,7 +437,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "M00000" }
+                          Contents = new List<string> { "M00000" }
                         });
           break;
         case "TRANS":
@@ -495,7 +449,7 @@ new List<string>()
               OrigId = "Agent server",
               ProcessId = "26621",
               InvokeId = "0",
-              Contents = new List<string>() { "M00001", "GEO_HM2" }
+              Contents = new List<string> { "M00001", "GEO_HM2" }
             });
           _WriteMessage(handler,
             new Message
@@ -505,7 +459,7 @@ new List<string>()
               OrigId = "Agent server",
               ProcessId = "26621",
               InvokeId = "0",
-              Contents = new List<string>() { "M00000" }
+              Contents = new List<string> { "M00000" }
             });
           break;
         case "BTRANS":
@@ -517,7 +471,7 @@ new List<string>()
               OrigId = "Agent server",
               ProcessId = "26621",
               InvokeId = "0",
-              Contents = new List<string>() { "M00001", "GEO_HM3" }
+              Contents = new List<string> { "M00001", "GEO_HM3" }
             });
           _WriteMessage(handler,
             new Message
@@ -527,7 +481,7 @@ new List<string>()
               OrigId = "Agent server",
               ProcessId = "26621",
               InvokeId = "0",
-              Contents = new List<string>() { "M00000" }
+              Contents = new List<string> { "M00000" }
             });
           break;
         case "AGTSTART":
@@ -539,7 +493,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "AGENT_STARTUP" }
+                          Contents = new List<string> { "AGENT_STARTUP" }
                         });
           break;
         case "AGTLogon":
@@ -551,7 +505,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -561,7 +515,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTReserveHeadset":
@@ -573,7 +527,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           Thread.Sleep(500);
           _WriteMessage(handler,
@@ -584,7 +538,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTConnHeadset":
@@ -596,7 +550,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           Thread.Sleep(500);
           _WriteMessage(handler,
@@ -607,7 +561,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTListState":
@@ -627,7 +581,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { content }
+                            Contents = new List<string> { content }
                           });
           _WriteMessage(handler,
                         new Message
@@ -637,7 +591,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTSetWorkClass":
@@ -649,7 +603,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTAttachJob":
@@ -663,7 +617,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTSetNotifyKeyField":
@@ -675,7 +629,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTSetDataField":
@@ -687,7 +641,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTAvailWork":
@@ -700,7 +654,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -710,7 +664,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTTransferCall":
@@ -722,7 +676,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "M00000" }
+                          Contents = new List<string> { "M00000" }
                         });
           break;
         case "AGTReleaseLine":
@@ -734,7 +688,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -744,7 +698,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTReadyNextItem":
@@ -759,7 +713,7 @@ new List<string>()
                               ProcessId = "26621",
                               InvokeId = "0",
                               //IsError = true,
-                              Contents = new List<string>() { "E28885" }
+                              Contents = new List<string> { "E28885" }
                             });
           }
           else
@@ -773,7 +727,7 @@ new List<string>()
                               OrigId = "Agent server",
                               ProcessId = "26621",
                               InvokeId = "0",
-                              Contents = new List<string>() { "M00000" }
+                              Contents = new List<string> { "M00000" }
                             });
           }
           break;
@@ -787,7 +741,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -797,7 +751,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           if (state.LeaveJob)
           {
@@ -810,7 +764,7 @@ new List<string>()
                               OrigId = "Agent server",
                               ProcessId = "26621",
                               InvokeId = "0",
-                              Contents = new List<string>() { "M00000" }
+                              Contents = new List<string> { "M00000" }
                             });
           }
           break;
@@ -823,7 +777,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           if (state.CurrentState != "S70000")
           {
@@ -836,7 +790,7 @@ new List<string>()
                               OrigId = "Agent server",
                               ProcessId = "26621",
                               InvokeId = "0",
-                              Contents = new List<string>() { "M00000" }
+                              Contents = new List<string> { "M00000" }
                             });
           }
           else
@@ -848,8 +802,6 @@ new List<string>()
           state.CurrentState = "S70004";
           state.CurrentJob = string.Empty;
 
-          //Thread.Sleep(3000);
-
           _WriteMessage(handler,
                         new Message
                           {
@@ -858,9 +810,10 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           state.LeaveJob = false;
+
           break;
         case "AGTDisconnHeadset":
           _WriteMessage(handler,
@@ -871,7 +824,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "S28833" }
+                            Contents = new List<string> { "S28833" }
                           });
           _WriteMessage(handler,
                         new Message
@@ -881,7 +834,7 @@ new List<string>()
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTFreeHeadset":
@@ -893,42 +846,31 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "M00000" }
+                          Contents = new List<string> { "M00000" }
                         });
           break;
         case "AGTListJobs":
           _WriteMessage(handler,
-                        new Message()
-                        {
+                        new Message
+                          {
                           Command = "AGTListJobs",
                           Type = Message.MessageType.Data,
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          //Contents = new List<string>() { "M00001", "O,30DHOP1,I", "O,30DHOP2,I", "O,30HOHiP1,I", "O,30HOHiP2,I", "O,5BIHOP1,I", "O,5BIHOP2,I", "B,ACT_blend,I", "O,ACT_outbnd,I", "O,ALW_C1T3SL,I", "O,ALW_C7S1SL,A", "O,ATTE_C1S1,I", "O,ATTE_C1S2,I", "O,ATTE_C1S3,I", "O,ATTE_C1S5,I", "O,ATTE_C1SP,I", "O,ATTE_C1W1,I", "O,AutoTest,I", "B,BLENDCOPY,I", "B,BlendTst,I", "B,GE_JCALLP5,I", "I,InbClosed,I", "O,Matttest,I", "O,NS_OB,I", "O,SX_MSPP1,I", "O,SX_MSPP2,I", "O,SX_MSPWCP1,I", "O,SX_MSPWCP2,I", "O,SX_Mod1,I", "O,SX_Mod1_2,I", "O,SX_ModSkp,I", "I,SallieINB,I", "B,SallieLO,A", "B,SallieSLM,I", "O,Sallie_AM,I", "B,Sallie_Dev,I", "O,SaxCol2LN1,I", "M,SaxCol2LN2,I", "O,SaxColLPS1,I", "O,SaxColLPS2,I", "M,SaxColLST1,I", "O,SaxColLST2,I", "O,SaxColMSPW,I", "O,SaxColPEP1,I", "O,SaxColPEP2,I", "M,SaxColPR31,I", "M,SaxColPR32,I", "M,SaxColPR61,I", "M,SaxColPR62,I", "O,SaxCol_121,I", "O,SaxCol_122,I", "O,SaxCol_31,I", "O,SaxCol_32,I", "O,SaxCol_61,I", "O,SaxCol_62,I", "O,SaxCol_91,I", "O,SaxCol_92,I", "O,SaxCol_FC1,I", "O,SaxCol_FC2,I", "M,SaxCol_L31,I", "M,SaxCol_L32,I", "O,SaxCol_L61,I", "O,SaxCol_L62,I", "M,SaxDev,I", "M,SaxonArm,I", "M,SaxonEsc,I", "O,SaxonII_1,I", "O,SaxonII_2,I", "O,SxonII_Dev,I", "O,UVRE_C7S1,I", "O,UVRSE_C7S1,I", "O,UVRSW_C7S1,A", "O,UVRW_C7S1,A", "O,Uvrs_Dev,I", "B,blend,I", "I,inbnd1,I", "M,managed,I", "O,outbnd,I" }
-                          Contents = new List<string>() { "M00001", "O,GEO_HM1,A", "O,GEO_HM2,A", "O,GEO_HM3,I" }
-                          //Contents = new List<string>() { "M00001", "O,SallieLO,A", "O,JOB2,A" }
+                          //Contents = new List<string> { "M00001", "O,30DHOP1,I", "O,30DHOP2,I", "O,30HOHiP1,I", "O,30HOHiP2,I", "O,5BIHOP1,I", "O,5BIHOP2,I", "B,ACT_blend,I", "O,ACT_outbnd,I", "O,ALW_C1T3SL,I", "O,ALW_C7S1SL,A", "O,ATTE_C1S1,I", "O,ATTE_C1S2,I", "O,ATTE_C1S3,I", "O,ATTE_C1S5,I", "O,ATTE_C1SP,I", "O,ATTE_C1W1,I", "O,AutoTest,I", "B,BLENDCOPY,I", "B,BlendTst,I", "B,GE_JCALLP5,I", "I,InbClosed,I", "O,Matttest,I", "O,NS_OB,I", "O,SX_MSPP1,I", "O,SX_MSPP2,I", "O,SX_MSPWCP1,I", "O,SX_MSPWCP2,I", "O,SX_Mod1,I", "O,SX_Mod1_2,I", "O,SX_ModSkp,I", "I,SallieINB,I", "B,SallieLO,A", "B,SallieSLM,I", "O,Sallie_AM,I", "B,Sallie_Dev,I", "O,SaxCol2LN1,I", "M,SaxCol2LN2,I", "O,SaxColLPS1,I", "O,SaxColLPS2,I", "M,SaxColLST1,I", "O,SaxColLST2,I", "O,SaxColMSPW,I", "O,SaxColPEP1,I", "O,SaxColPEP2,I", "M,SaxColPR31,I", "M,SaxColPR32,I", "M,SaxColPR61,I", "M,SaxColPR62,I", "O,SaxCol_121,I", "O,SaxCol_122,I", "O,SaxCol_31,I", "O,SaxCol_32,I", "O,SaxCol_61,I", "O,SaxCol_62,I", "O,SaxCol_91,I", "O,SaxCol_92,I", "O,SaxCol_FC1,I", "O,SaxCol_FC2,I", "M,SaxCol_L31,I", "M,SaxCol_L32,I", "O,SaxCol_L61,I", "O,SaxCol_L62,I", "M,SaxDev,I", "M,SaxonArm,I", "M,SaxonEsc,I", "O,SaxonII_1,I", "O,SaxonII_2,I", "O,SxonII_Dev,I", "O,UVRE_C7S1,I", "O,UVRSE_C7S1,I", "O,UVRSW_C7S1,A", "O,UVRW_C7S1,A", "O,Uvrs_Dev,I", "B,blend,I", "I,inbnd1,I", "M,managed,I", "O,outbnd,I" }
+                          Contents = new List<string> { "M00001", "O,GEO_HM1,A", "O,GEO_HM2,A", "O,GEO_HM3,I" }
+                          //Contents = new List<string> { "M00001", "O,SallieLO,A", "O,JOB2,A" }
                         });
-          //_WriteMessage(handler,
-          //    new Message()
-          //    {
-          //      Command = "AGTListJobs",
-          //      Type = "D",
-          //      OrigId = "Agent server",
-          //      ProcessId = "26621",
-          //      InvokeId = "0",
-          //      Segments = "3",
-          //      Contents = new List<string>() { "M00001", "O,SallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieLOSallieL,A" }
-          //    });
           _WriteMessage(handler,
-                        new Message()
+                        new Message
                           {
                             Command = "AGTListJobs",
                             Type = Message.MessageType.Response,
                             OrigId = "Agent server",
                             ProcessId = "26621",
                             InvokeId = "0",
-                            Contents = new List<string>() { "M00000" }
+                            Contents = new List<string> { "M00000" }
                           });
           break;
         case "AGTLogoff":
@@ -940,7 +882,7 @@ new List<string>()
                           OrigId = "Agent server",
                           ProcessId = "26621",
                           InvokeId = "0",
-                          Contents = new List<string>() { "M00000" }
+                          Contents = new List<string> { "M00000" }
                         });
           state.Disconnect = true;
           break;
@@ -952,7 +894,7 @@ new List<string>()
       var writer = new StreamWriter(new NetworkStream(sock, true));
       var rawMsg = msg.RawMessage;
 
-      Console.WriteLine("Sent ({0}):" + rawMsg, DateTime.Now.ToString());
+      Console.WriteLine("Sent ({0}):" + rawMsg, DateTime.Now);
       writer.Write(rawMsg);
       writer.Flush();
       Thread.Sleep(50);

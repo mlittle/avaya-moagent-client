@@ -10,7 +10,7 @@ namespace AvayaMoagentClient.Commands
     { }
 
     public AvailableWork(bool cacheRawMessage)
-      : base(COMMAND, Message.MessageType.Command, cacheRawMessage)
+      : base(COMMAND, MessageType.Command, cacheRawMessage)
     { }
   }
 }

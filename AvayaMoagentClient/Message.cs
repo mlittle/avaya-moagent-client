@@ -77,15 +77,7 @@ namespace AvayaMoagentClient
     {
       get
       {
-        //string ret;
-
-        //if (_rawMessage == null)
-        //  ret = this.BuildMessage();
-        //else
-        //  ret = _rawMessage;
-
-        //return ret;
-        return this.BuildMessage();
+        return BuildMessage();
       }
       set
       {
@@ -145,7 +137,7 @@ namespace AvayaMoagentClient
 
       if (cacheRawMessage)
       {
-        RawMessage = this.BuildMessage();
+        RawMessage = BuildMessage();
       }
     }
 

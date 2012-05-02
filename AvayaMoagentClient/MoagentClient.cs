@@ -39,20 +39,20 @@ namespace AvayaMoagentClient
     public Socket Stream { get; set; }
     public SslStream SecureStream { get; set; }
     public const int BufferSize = 256;
-    public byte[] buffer = new byte[BufferSize];
+    public byte[] Buffer = new byte[BufferSize];
     public StringBuilder sb = new StringBuilder();
   }
 
   public class MoagentClient
   {
     private int _invokeIdSequence = 1;
-    private Socket _client;
+    private readonly Socket _client;
     private SslStream _sslWrapper;
-    private string _server;
-    private int _port;
-    private readonly bool _useSSL;
-    private X509List _xList;
-    private X509Chain _xChain;
+    private readonly string _server;
+    private readonly int _port;
+    private readonly bool _useSsl;
+    private readonly X509List _xList;
+    private readonly X509Chain _xChain;
 
     public delegate void MessageSentHandler(object sender, MessageSentEventArgs e);
     public delegate void MessageReceivedHandler(object sender, MessageReceivedEventArgs e);
@@ -67,24 +67,22 @@ namespace AvayaMoagentClient
     {
     }
     
-    public MoagentClient(string host, int port, bool useSSL)
+    public MoagentClient(string host, int port, bool useSsl)
     {
       _server = host;
       _port = port;
-      _useSSL = useSSL;
+      _useSsl = useSsl;
       _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-      if (_useSSL)
+      if (_useSsl)
       {
         var certBio = BIO.File(@".\agentClientCert.p12", "r");
         X509Certificate clientCert = X509Certificate.FromPKCS12(certBio, string.Empty);
         var serverBio = BIO.File(@".\ProactiveContactCA.cer", "r");
         X509Certificate serverCert = X509Certificate.FromDER(serverBio);
 
-        _xList = new X509List();
-        _xList.Add(clientCert);
-        _xChain = new X509Chain();
-        _xChain.Add(serverCert);
+        _xList = new X509List {clientCert};
+        _xChain = new X509Chain {serverCert};
       }
     }
 
@@ -106,7 +104,7 @@ namespace AvayaMoagentClient
 
       client.EndConnect(ar);
 
-      if (_useSSL)
+      if (_useSsl)
       {
         var stream = new NetworkStream(_client, FileAccess.ReadWrite, true);
         _sslWrapper = new SslStream(stream, false, ValidateRemoteCert, clientCertificateSelectionCallback);
@@ -144,10 +142,9 @@ namespace AvayaMoagentClient
     {
       try
       {
-        var state = new StateObject();
-        state.Stream = client;
-        
-        client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+        var state = new StateObject {Stream = client};
+
+        client.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
       }
       catch (Exception e)
       {
@@ -159,10 +156,9 @@ namespace AvayaMoagentClient
     {
       try
       {
-        var state = new StateObject();
-        state.SecureStream = client;
+        var state = new StateObject {SecureStream = client};
 
-        client.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(SecureReceiveCallback), state);
+        client.BeginRead(state.Buffer, 0, StateObject.BufferSize, SecureReceiveCallback, state);
       }
       catch (Exception e)
       {
@@ -172,7 +168,7 @@ namespace AvayaMoagentClient
 
     private void ReceiveCallback(IAsyncResult ar)
     {
-      var content = String.Empty;
+      string content;
 
       try
       {
@@ -190,7 +186,7 @@ namespace AvayaMoagentClient
           if (bytesRead > 0)
           {
             // There  might be more data, so store the data received so far.
-            state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+            state.sb.Append(Encoding.ASCII.GetString(state.Buffer, 0, bytesRead));
 
             // Check for end-of-file tag. If it is not there, read more data.
             content = state.sb.ToString();
@@ -221,22 +217,22 @@ namespace AvayaMoagentClient
           if (!(lastMsg != null &&
                 lastMsg.Type == Message.MessageType.Response &&
                 lastMsg.Command.Trim() == "AGTLogoff"))
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+            handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
         }
       }
-      catch (IOException e)
+      catch (IOException)
       {
         //something in the transport leyer has failed, such as the network connection died
         //TODO: log the exception details?
         Disconnect();
       }
-      catch (ObjectDisposedException e)
+      catch (ObjectDisposedException)
       {
         //we've been disconnected
         //TODO: log the exception details?
         Disconnect();
       }
-      catch (Exception e)
+      catch (Exception)
       {
         Debugger.Break();
       }
@@ -244,7 +240,7 @@ namespace AvayaMoagentClient
 
     private void SecureReceiveCallback(IAsyncResult ar)
     {
-      var content = String.Empty;
+      string content;
 
       try
       {
@@ -263,7 +259,7 @@ namespace AvayaMoagentClient
           if (bytesRead > 0)
           {
             // There  might be more data, so store the data received so far.
-            state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+            state.sb.Append(Encoding.ASCII.GetString(state.Buffer, 0, bytesRead));
 
             // Check for end-of-file tag. If it is not there, read more data.
             content = state.sb.ToString();
@@ -294,7 +290,7 @@ namespace AvayaMoagentClient
           if (!(lastMsg != null && 
                 lastMsg.Type == Message.MessageType.Response && 
                 lastMsg.Command.Trim() == "AGTLogoff"))
-            handler.BeginRead(state.buffer, 0, StateObject.BufferSize, new AsyncCallback(SecureReceiveCallback), state);
+            handler.BeginRead(state.Buffer, 0, StateObject.BufferSize, SecureReceiveCallback, state);
         }
       }
       catch (IOException e)
@@ -309,13 +305,13 @@ namespace AvayaMoagentClient
         //TODO: log the exception details?
         Disconnect();
       }
-      catch (Exception e)
+      catch (Exception)
       {
         Debugger.Break();
       }
     }
 
-    private Message _LogMessagesReceived(List<string> msgs)
+    private Message _LogMessagesReceived(IEnumerable<string> msgs)
     {
       Message lastMsg = null;
 
@@ -323,7 +319,7 @@ namespace AvayaMoagentClient
       {
         lastMsg = Message.ParseMessage(msg);
         if (MessageReceived != null)
-          MessageReceived(this, new MessageReceivedEventArgs() { Message = lastMsg });
+          MessageReceived(this, new MessageReceivedEventArgs { Message = lastMsg });
       }
 
       return lastMsg;
@@ -333,7 +329,7 @@ namespace AvayaMoagentClient
     {
       data.InvokeId = (_invokeIdSequence++).ToString();
       if (MessageSent != null)
-        MessageSent(this, new MessageSentEventArgs() { Message = data });
+        MessageSent(this, new MessageSentEventArgs { Message = data });
 
       Send(data.RawMessage);
     }
@@ -344,9 +340,9 @@ namespace AvayaMoagentClient
 
       // Begin sending the data to the remote device.
       //TODO: Pick secure vs nonsecure send
-      if (_useSSL)
+      if (_useSsl)
       {
-        _sslWrapper.BeginWrite(byteData, 0, byteData.Length, new AsyncCallback(SecureSendCallback), _sslWrapper);  
+        _sslWrapper.BeginWrite(byteData, 0, byteData.Length, SecureSendCallback, _sslWrapper);  
       }
       else
       {
@@ -363,13 +359,13 @@ namespace AvayaMoagentClient
         client.EndSend(ar);
         //TODO: Tell somebody?
       }
-      catch (IOException e)
+      catch (IOException)
       {
         //something in the transport leyer has failed, such as the network connection died
         //TODO: log the exception details?
         Disconnect();
       }
-      catch (ObjectDisposedException e)
+      catch (ObjectDisposedException)
       {
         //we've been disconnected
         //TODO: log the exception details?
@@ -390,13 +386,13 @@ namespace AvayaMoagentClient
         client.EndWrite(ar);
         //TODO: Tell somebody?
       }
-      catch (IOException e)
+      catch (IOException)
       {
         //something in the transport leyer has failed, such as the network connection died
         //TODO: log the exception details?
         Disconnect();
       }
-      catch (ObjectDisposedException e)
+      catch (ObjectDisposedException)
       {
         //we've been disconnected
         //TODO: log the exception details?
@@ -473,9 +469,9 @@ namespace AvayaMoagentClient
 
       // check target host?
 
-      for (int i = 0; i < acceptableIssuers.GetLength(0); i++)
+      for (var i = 0; i < acceptableIssuers.GetLength(0); i++)
       {
-        X509Name name = new X509Name(acceptableIssuers[i]);
+        var name = new X509Name(acceptableIssuers[i]);
 
         foreach (X509Certificate cert in localCerts)
         {

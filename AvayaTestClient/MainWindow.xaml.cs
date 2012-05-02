@@ -1,4 +1,4 @@
-﻿//Copyright (c) 2010 - 2011, Matthew J Little and contributors.
+﻿//Copyright (c) 2010 - 2012, Matthew J Little and contributors.
 //All rights reserved.
 //
 //Redistribution and use in source and binary forms, with or without modification, are permitted

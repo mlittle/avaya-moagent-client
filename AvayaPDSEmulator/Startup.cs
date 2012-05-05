@@ -32,7 +32,7 @@ namespace AvayaPDSEmulator
 {
   class Startup
   {
-    static void Main(string[] args)
+    static void Main()
     {
       var s = new AvayaPdsServer();
 

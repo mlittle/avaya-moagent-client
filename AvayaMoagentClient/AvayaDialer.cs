@@ -31,17 +31,17 @@ namespace AvayaMoagentClient
     private MoagentClient _client;
     private string _host;
     private int _port;
-    private bool _useSSL;
+    private bool _useSsl;
 
     public event MoagentClient.MessageSentHandler MessageSent;
     public event MoagentClient.MessageReceivedHandler MessageReceived;
     public event MoagentClient.DisconnectedHandler Disconnected;
 
-    public AvayaDialer(string host, int port, bool useSSL)
+    public AvayaDialer(string host, int port, bool useSsl)
     {
       _host = host;
       _port = port;
-      _useSSL = useSSL;
+      _useSsl = useSsl;
     }
 
     private void _client_MessageSent(object sender, MessageSentEventArgs e)
@@ -56,7 +56,7 @@ namespace AvayaMoagentClient
         MessageReceived(this, e);
     }
 
-    void _client_ConnectComplete(object sender, System.EventArgs e)
+    void _client_ConnectComplete(object sender, EventArgs e)
     {
       //do something?
     }
@@ -74,7 +74,7 @@ namespace AvayaMoagentClient
 
     public void Connect()
     {
-      _client = new MoagentClient(_host, _port, _useSSL);
+      _client = new MoagentClient(_host, _port, _useSsl);
       _client.ConnectComplete += _client_ConnectComplete;
       _client.MessageSent += _client_MessageSent;
       _client.MessageReceived += _client_MessageReceived;

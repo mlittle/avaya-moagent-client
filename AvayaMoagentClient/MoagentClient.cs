@@ -463,7 +463,7 @@ namespace AvayaMoagentClient
       return ret;
     }
 
-    protected X509Certificate clientCertificateSelectionCallback(object sender, string targetHost, X509List localCerts, X509Certificate remoteCert, string[] acceptableIssuers)
+    private X509Certificate clientCertificateSelectionCallback(object sender, string targetHost, X509List localCerts, X509Certificate remoteCert, string[] acceptableIssuers)
     {
       X509Certificate retCert = null;
 

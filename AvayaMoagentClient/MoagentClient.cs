@@ -33,18 +33,18 @@ using OpenSSL.X509;
 
 namespace AvayaMoagentClient
 {
-  // State object for receiving data from remote device.
-  public class StateObject
-  {
-    public Socket Stream { get; set; }
-    public SslStream SecureStream { get; set; }
-    public const int BufferSize = 256;
-    public byte[] Buffer = new byte[BufferSize];
-    public StringBuilder sb = new StringBuilder();
-  }
-
   public class MoagentClient
   {
+    // State object for receiving data from remote device.
+    private sealed class StateObject
+    {
+      public Socket Stream { get; set; }
+      public SslStream SecureStream { get; set; }
+      public const int BufferSize = 256;
+      public byte[] Buffer = new byte[BufferSize];
+      public StringBuilder sb = new StringBuilder();
+    }
+
     private int _invokeIdSequence = 1;
     private readonly Socket _client;
     private SslStream _sslWrapper;

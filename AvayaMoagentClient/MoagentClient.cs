@@ -144,7 +144,7 @@ namespace AvayaMoagentClient
       {
         var state = new StateObject {Stream = client};
 
-        client.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+        client.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
       }
       catch (Exception e)
       {
@@ -217,7 +217,7 @@ namespace AvayaMoagentClient
           if (!(lastMsg != null &&
                 lastMsg.Type == Message.MessageType.Response &&
                 lastMsg.Command.Trim() == "AGTLogoff"))
-            handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+            handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReceiveCallback, state);
         }
       }
       catch (IOException)
@@ -346,7 +346,7 @@ namespace AvayaMoagentClient
       }
       else
       {
-        _client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), _client);
+        _client.BeginSend(byteData, 0, byteData.Length, 0, SendCallback, _client);
       }
     }
 
